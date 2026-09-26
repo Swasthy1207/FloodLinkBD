@@ -1,0 +1,109 @@
+﻿@model FloodLink.Models.OrganizationHelpNeed
+
+@{
+    ViewData["Title"] = "Offer Help";
+}
+
+<div class="container py-4">
+
+    <a asp-action="Details"
+       asp-route-id="@Model.Id"
+       class="btn btn-outline-secondary mb-3">
+        ← Back
+    </a>
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+            <h3>Offer Help</h3>
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-info">
+
+                <strong>Help Needed:</strong>
+                @Model.Title
+                <br />
+
+                <strong>Organization:</strong>
+                @Model.Organization?.OrganizationName
+                <br />
+
+                <strong>Location:</strong>
+                @Model.Location
+
+            </div>
+
+
+            <form asp-action="OfferHelp"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="id"
+                       value="@Model.Id" />
+
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        What help can your organization provide?
+                    </label>
+
+                    <input type="text"
+                           name="offeredHelpType"
+                           class="form-control"
+                           placeholder="Example: Drinking Water, Food, Rescue Team"
+                           required />
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Quantity / Capacity
+                    </label>
+
+                    <input type="text"
+                           name="offeredQuantity"
+                           class="form-control"
+                           placeholder="Example: 500 bottles / 20 volunteers" />
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Message
+                    </label>
+
+                    <textarea name="message"
+                              class="form-control"
+                              rows="5"
+                              placeholder="Explain how your organization can help..."></textarea>
+
+                </div>
+
+
+                <button type="submit"
+                        class="btn btn-success">
+                    Submit Help Offer
+                </button>
+
+                <a asp-action="Details"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

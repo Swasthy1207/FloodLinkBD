@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Coordinator Dashboard";
+    var fullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name;
+}
+
+<div class="container py-5">
+    <div class="mb-4">
+        <div class="d-flex align-items-center gap-2">
+            <h2>Multi-Organization Coordination Dashboard</h2>
+            <span class="badge bg-primary">Coordinator</span>
+        </div>
+        <p class="text-muted">
+            Welcome, <strong>@fullName</strong>
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <div class="card-body d-flex flex-column">
+                    <h4>Disaster Response Coordination</h4>
+                    <p class="text-muted flex-grow-1">
+                        Oversee relief operations, coordinate inter-organizational rescue plans, and monitor teams.
+                    </p>
+                    <a asp-controller="HelpRequest" asp-action="AllRequests" class="btn btn-primary">
+                        <i class="bi bi-diagram-3 me-1"></i> Coordinate Help Requests
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-3">
+                <div class="card-body d-flex flex-column">
+                    <h4>Shelter & Resource Distribution</h4>
+                    <p class="text-muted flex-grow-1">
+                        Assign field resources, review volunteer deployments, and track real-time incident reports.
+                    </p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a asp-controller="Resource" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-box-seam me-1"></i> Resources & Equipment
+                        </a>
+                        <a asp-controller="Shelter" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-house me-1"></i> Shelters
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,785 @@
+@model FloodLink.Models.HelpRequest
+
+@{
+    ViewData["Title"] = "Help Request Details";
+    bool isAdmin   = (bool)(ViewBag.IsAdmin ?? false);
+    bool isOwner   = (bool)(ViewBag.IsOwner ?? false);
+    bool isReporter= (bool)(ViewBag.IsReporter ?? false);
+    var validStatuses = (string[])(ViewBag.ValidStatuses ?? Array.Empty<string>());
+
+    int   likeCount    = (int)(ViewBag.LikeCount    ?? 0);
+    int   dislikeCount = (int)(ViewBag.DislikeCount ?? 0);
+    bool? myReaction   = ViewBag.MyReaction  as bool?;
+    double? avgRating  = ViewBag.AvgRating   as double?;
+    int   ratingCount  = (int)(ViewBag.RatingCount  ?? 0);
+    int?  myRating     = ViewBag.MyRating    as int?;
+    int?  myRatingId   = ViewBag.MyRatingId  as int?;
+
+    string StatusBadge(string s) => s switch
+    {
+        "Submitted"   => "bg-warning text-dark",
+        "In Progress" => "bg-primary",
+        "Resolved"    => "bg-success",
+        "Closed"      => "bg-secondary",
+        _             => "bg-secondary"
+    };
+    string PriorityBadge(string p) => p switch
+    {
+        "High"   => "bg-danger",
+        "Medium" => "bg-warning text-dark",
+        "Low"    => "bg-info text-dark",
+        _        => "bg-secondary"
+    };
+}
+
+<div class="container mt-4 mb-5">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+            </li>
+            @if (isAdmin)
+            {
+                <li class="breadcrumb-item">
+                    <a asp-controller="HelpRequest" asp-action="AllRequests">All Requests</a>
+                </li>
+            }
+            else if (User.IsInRole("Community Reporter"))
+            {
+                <li class="breadcrumb-item">
+                    <a asp-controller="HelpRequest" asp-action="ReporterDashboard">My Field Reports</a>
+                </li>
+            }
+            else
+            {
+                <li class="breadcrumb-item">
+                    <a asp-controller="HelpRequest" asp-action="MyRequests">My Requests</a>
+                </li>
+            }
+            <li class="breadcrumb-item active" aria-current="page">Details</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- ── Main detail card ─────────────────────────────────────────── -->
+        <div class="col-lg-8">
+
+            @if (Model.IsPotentialDuplicate && !Model.DuplicateDismissed)
+            {
+                <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center mb-3 shadow-sm">
+                    <div>
+                        <h6 class="alert-heading mb-1 fw-bold">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>AI Alert: Potential Duplicate Detected
+                        </h6>
+                        <p class="mb-1 small">@Model.DuplicateDetectionReason</p>
+                        @if (Model.PotentialDuplicateRequestId.HasValue)
+                        {
+                            <a asp-action="Details" asp-route-id="@Model.PotentialDuplicateRequestId.Value"
+                               class="small fw-semibold text-decoration-underline text-dark" target="_blank">
+                                View Potential Original #@Model.PotentialDuplicateRequestId.Value →
+                            </a>
+                        }
+                    </div>
+                    @if (isAdmin)
+                    {
+                        <div class="d-flex gap-2 flex-shrink-0 ms-3">
+                            <form asp-action="DismissDuplicate" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Dismiss</button>
+                            </form>
+                            @if (Model.PotentialDuplicateRequestId.HasValue)
+                            {
+                                <form asp-action="MarkAsDuplicate" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <input type="hidden" name="masterRequestId" value="@Model.PotentialDuplicateRequestId.Value" />
+                                    <button type="submit" class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Close this request as duplicate?')">Mark Duplicate</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Detail card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4 class="mb-1">@Model.Title</h4>
+                        <span class="badge @StatusBadge(Model.Status) me-1">@Model.Status</span>
+                        <span class="badge @PriorityBadge(Model.Priority) me-1">Priority: @Model.Priority</span>
+                        @if (!string.IsNullOrEmpty(Model.AiSuggestedUrgency))
+                        {
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-robot"></i> AI: @Model.AiSuggestedUrgency
+                            </span>
+                        }
+                    </div>
+                    <span class="text-muted small">#@Model.Id</span>
+                </div>
+
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.AiSuggestedUrgency))
+                    {
+                        <div class="p-2 mb-3 rounded border-start border-4 border-info small">
+                            <span class="fw-semibold text-primary">
+                                <i class="bi bi-cpu me-1"></i>AI Urgency Assessment:
+                            </span>
+                            Suggested <strong>@Model.AiSuggestedUrgency Priority</strong> — @Model.AiUrgencyRationale
+                        </div>
+                    }
+
+                    <h6 class="text-muted text-uppercase small fw-semibold mb-1">Description</h6>
+                    <p class="mb-4">@Model.Description</p>
+
+                    @if (!string.IsNullOrEmpty(Model.AffectedPersonName))
+                    {
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Affected Person</h6>
+                        <p class="mb-4">@Model.AffectedPersonName</p>
+                    }
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Category</h6>
+                            <p class="mb-0"><span class="badge bg-light text-dark border">@Model.Category</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Affected People</h6>
+                            <p class="mb-0"><strong>@Model.NumberOfPeople</strong> people</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Location</h6>
+                            <p class="mb-0">
+                                <i class="bi bi-geo-alt text-primary me-1"></i>@Model.Location
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Contact</h6>
+                            <p class="mb-0">@Model.ContactInformation</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.VolunteerEmail))
+                    {
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Assigned Volunteer</h6>
+                        <p class="mb-3">@Model.VolunteerEmail</p>
+                    }
+
+                    @if (Model.DisasterOperation != null)
+                    {
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-1">Linked Operation</h6>
+                        <p class="mb-3">@Model.DisasterOperation.OperationName</p>
+                    }
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Submitted</h6>
+                            <p class="mb-0 text-muted small">@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</p>
+                        </div>
+                        @if (Model.UpdatedAt.HasValue)
+                        {
+                            <div class="col-md-6">
+                                <h6 class="text-muted text-uppercase small fw-semibold mb-1">Last Updated</h6>
+                                <p class="mb-0 text-muted small">@Model.UpdatedAt.Value.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")</p>
+                            </div>
+                        }
+                    </div>
+
+                    @if (Model.IsVerified)
+                    {
+                        <div class="mt-4 pt-3 border-top">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-2">Verification</h6>
+                            <p class="mb-1 text-success fw-bold">
+                                <i class="bi bi-check-circle-fill"></i>
+                                Verified at @Model.VerifiedAt?.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                            </p>
+                            @if (!string.IsNullOrEmpty(Model.VerificationNotes))
+                            {
+                                <p class="text-muted small mb-0">@Model.VerificationNotes</p>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.EmergencyNotes))
+                    {
+                        <div class="mt-4 p-3 border rounded">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-2 text-danger">Emergency Updates</h6>
+                            <p class="mb-0 fw-semibold">@Model.EmergencyNotes</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Attachments gallery -->
+                @if (Model.Attachments != null && Model.Attachments.Any())
+                {
+                    <div class="card-footer border-top py-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-2">
+                            <i class="bi bi-images me-1"></i>Photos (@Model.Attachments.Count)
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var att in Model.Attachments)
+                            {
+                                <a href="@att.FilePath" target="_blank" class="d-block">
+                                    <img src="@att.FilePath" alt="@att.FileName"
+                                         class="img-thumbnail"
+                                         style="width:120px;height:100px;object-fit:cover;" />
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <div class="card-footer border-top py-3">
+                        <h6 class="text-muted text-uppercase small fw-semibold mb-2">Attached Photo</h6>
+                        <img src="@Model.ImagePath" alt="Photo"
+                             class="img-fluid rounded" style="max-height:300px; object-fit:contain;" />
+                    </div>
+                }
+            </div>
+
+            <!-- Map (if coordinates stored) -->
+            @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header border-bottom py-2">
+                        <h6 class="mb-0 fw-semibold">
+                            <i class="bi bi-geo-alt-fill text-primary me-1"></i>Location on Map
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="detailMap" style="height:280px; border-radius:0 0 0.375rem 0.375rem;"></div>
+                    </div>
+                </div>
+            }
+
+            <!-- Like / Dislike -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <span class="fw-semibold me-1">Reactions:</span>
+                        <button id="likeBtn"
+                                class="btn btn-sm @(myReaction == true ? "btn-primary" : "btn-outline-primary") d-flex align-items-center gap-1"
+                                data-id="@Model.Id" data-like="true">
+                            <i class="bi bi-hand-thumbs-up-fill"></i>
+                            <span id="likeCount">@likeCount</span>
+                        </button>
+                        <button id="dislikeBtn"
+                                class="btn btn-sm @(myReaction == false ? "btn-danger" : "btn-outline-danger") d-flex align-items-center gap-1"
+                                data-id="@Model.Id" data-like="false">
+                            <i class="bi bi-hand-thumbs-down-fill"></i>
+                            <span id="dislikeCount">@dislikeCount</span>
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <!-- Star Rating -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold">Rating</span>
+                            @if (avgRating.HasValue)
+                            {
+                                <span class="text-muted small">
+                                    Avg: <strong id="avgRatingDisplay">@avgRating.Value.ToString("F1")</strong>
+                                    / 5 (<span id="ratingCountDisplay">@ratingCount</span> votes)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small" id="avgRatingDisplay">No ratings yet</span>
+                            }
+                        </div>
+                        <div id="starRating" class="d-flex gap-1" data-id="@Model.Id" data-my-rating="@(myRating ?? 0)">
+                            @for (int s = 1; s <= 5; s++)
+                            {
+                                <i class="bi @(myRating.HasValue && s <= myRating.Value ? "bi-star-fill" : "bi-star") fs-4 text-warning star-btn"
+                                   style="cursor:pointer;" data-value="@s" id="star_@s"></i>
+                            }
+                        </div>
+                        <div class="form-text mt-1">Click a star to rate this request.</div>
+                    </div>
+                </div>
+            }
+
+            <!-- Comments -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header border-bottom py-3">
+                        <h6 class="mb-0 fw-semibold">
+                            <i class="bi bi-chat-left-text me-1"></i>
+                            Comments (@(Model.Comments?.Count ?? 0))
+                        </h6>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Post a comment -->
+                        <div class="mb-4">
+                            <textarea id="commentInput" class="form-control mb-2" rows="2"
+                                      placeholder="Write a comment..." maxlength="2000"></textarea>
+                            <button id="postCommentBtn" class="btn btn-primary btn-sm"
+                                    data-id="@Model.Id">
+                                <i class="bi bi-send me-1"></i>Post Comment
+                            </button>
+                        </div>
+
+                        <!-- Existing comments -->
+                        <div id="commentsList">
+                            @if (Model.Comments != null)
+                            {
+                                foreach (var c in Model.Comments.OrderByDescending(x => x.CreatedAt))
+                                {
+                                    <div class="border rounded p-3 mb-3 comment-item" id="comment_@c.Id">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <span class="fw-semibold small">@(c.User?.FullName ?? "User")</span>
+                                            <span class="text-muted small">
+                                                @c.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                                                @if (c.UpdatedAt.HasValue)
+                                                {
+                                                    <em>(edited)</em>
+                                                }
+                                            </span>
+                                        </div>
+                                        <p class="mb-1 comment-text">@c.Content</p>
+                                        @if (User.Identity?.Name == c.User?.Email || isAdmin)
+                                        {
+                                            <div class="d-flex gap-2 mt-1">
+                                                <button class="btn btn-link btn-sm p-0 text-muted edit-comment-btn"
+                                                        data-id="@c.Id">Edit</button>
+                                                <button class="btn btn-link btn-sm p-0 text-danger delete-comment-btn"
+                                                        data-id="@c.Id">Delete</button>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 flex-wrap">
+                @if (isOwner && Model.Status == "Submitted")
+                {
+                    <a asp-controller="HelpRequest" asp-action="Edit" asp-route-id="@Model.Id"
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i>Edit Request
+                    </a>
+                    <a asp-controller="HelpRequest" asp-action="Delete" asp-route-id="@Model.Id"
+                       class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-1"></i>Delete Request
+                    </a>
+                }
+                @if (isAdmin)
+                {
+                    <a asp-controller="HelpRequest" asp-action="AllRequests"
+                       class="btn btn-outline-secondary">
+                        ← Back to All Requests
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="HelpRequest" asp-action="MyRequests"
+                       class="btn btn-outline-secondary">
+                        ← Back to My Requests
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- ── Sidebar ────────────────────────────────────────────────────── -->
+        @{
+            var statusLogs = ViewBag.StatusLogs as List<FloodLink.Models.HelpRequestStatusLog>
+                             ?? new List<FloodLink.Models.HelpRequestStatusLog>();
+        }
+
+        <div class="col-lg-4 mt-4 mt-lg-0">
+
+          @if (isAdmin)
+{
+    var availableVolunteers =
+        ViewBag.AvailableVolunteers
+        as List<FloodLink.Models.VolunteerProfile>
+        ?? new List<FloodLink.Models.VolunteerProfile>();
+
+    <div class="card shadow-sm mb-3">
+
+        <div class="card-header border-bottom py-2">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-person-check me-1"></i>
+                Volunteer Assignment
+            </h6>
+        </div>
+
+        <div class="card-body">
+
+            @if (!string.IsNullOrEmpty(Model.VolunteerEmail))
+            {
+                <div class="alert alert-info py-2 small">
+
+                    <strong>Currently Assigned:</strong>
+
+                    @Model.VolunteerEmail
+
+                </div>
+            }
+
+            @if (availableVolunteers.Any())
+            {
+                <form asp-controller="HelpRequest"
+                      asp-action="AssignVolunteer"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <label class="form-label small fw-semibold">
+                        Available Volunteer
+                    </label>
+
+                    <select name="volunteerProfileId"
+                            class="form-select mb-2"
+                            required>
+
+                        <option value="">
+                            -- Select Available Volunteer --
+                        </option>
+
+                        @foreach (var v in availableVolunteers)
+                        {
+                            <option value="@v.Id">
+                                @v.User?.FullName
+                                —
+                                @(v.Skills ?? "No skills specified")
+                                —
+                                @(v.CurrentLocation ?? "Location unknown")
+                            </option>
+                        }
+
+                    </select>
+
+                    <button type="submit"
+                            class="btn btn-success w-100"
+                            onclick="return confirm('Assign this volunteer to the request?');">
+
+                        <i class="bi bi-person-check me-1"></i>
+                        Assign Volunteer
+
+                    </button>
+
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-warning small mb-0">
+
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+
+                    No available approved volunteer is currently
+                    available from your organization.
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+}
+            
+            @if (isAdmin)
+            {
+                <!-- Update Status -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header border-bottom py-2">
+                        <h6 class="mb-0 fw-semibold">Update Status</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-controller="HelpRequest" asp-action="UpdateStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <select name="status" class="form-select mb-2">
+                                @foreach (var s in validStatuses)
+                                {
+                                    <option value="@s" selected="@(Model.Status == s)">@s</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-primary w-100">Update Status</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Update Priority -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header border-bottom py-2">
+                        <h6 class="mb-0 fw-semibold">Update Priority</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-controller="HelpRequest" asp-action="UpdatePriority" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <select name="priority" class="form-select mb-2">
+                                <option value="Low"    selected="@(Model.Priority == "Low")">Low</option>
+                                <option value="Medium" selected="@(Model.Priority == "Medium")">Medium</option>
+                                <option value="High"   selected="@(Model.Priority == "High")">High</option>
+                            </select>
+                            <button type="submit" class="btn btn-warning w-100">Update Priority</button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            @if (isAdmin || isReporter)
+            {
+                <!-- Emergency Info -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header border-bottom py-2">
+                        <h6 class="mb-0 fw-semibold">Emergency Info Update</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-controller="HelpRequest" asp-action="UpdateEmergencyInfo" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <textarea name="emergencyNotes" class="form-control mb-2" rows="3"
+                                      placeholder="Latest situation updates..." required></textarea>
+                            <button type="submit" class="btn btn-danger w-100">Update Emergency Info</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Verify -->
+                @if (!Model.IsVerified)
+                {
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header border-bottom py-2">
+                            <h6 class="mb-0 fw-semibold">Verify Request</h6>
+                        </div>
+                        <div class="card-body">
+                            <form asp-controller="HelpRequest" asp-action="VerifyRequest" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <textarea name="verificationNotes" class="form-control mb-2" rows="2"
+                                          placeholder="Verification notes (optional)"></textarea>
+                                <button type="submit" class="btn btn-success w-100">Mark as Verified</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            }
+
+            <!-- Change History -->
+            @if (statusLogs.Any())
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header border-bottom py-2">
+                        <h6 class="mb-0 fw-semibold">
+                            <i class="bi bi-clock-history me-1"></i>Change History
+                        </h6>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var log in statusLogs)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-start py-2">
+                                <div>
+                                    <span class="badge @(log.ChangeType == "Status" ? "bg-primary" : "bg-warning text-dark") me-2">@log.ChangeType</span>
+                                    <span class="text-muted small">@log.OldValue</span>
+                                    <i class="bi bi-arrow-right mx-1 text-muted small"></i>
+                                    <strong class="small">@log.NewValue</strong>
+                                    @if (!string.IsNullOrEmpty(log.Note))
+                                    {
+                                        <span class="text-muted small ms-2">— @log.Note</span>
+                                    }
+                                    <div class="text-muted small">by @(log.ChangedBy?.FullName ?? "System")</div>
+                                </div>
+                                <span class="text-muted small text-nowrap">@log.ChangedAt.ToLocalTime().ToString("dd MMM")</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <!-- Leaflet for detail map -->
+    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+    {
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            (function () {
+                const lat = @Model.Latitude.Value.ToString("F6", System.Globalization.CultureInfo.InvariantCulture);
+                const lng = @Model.Longitude.Value.ToString("F6", System.Globalization.CultureInfo.InvariantCulture);
+                const map = L.map('detailMap').setView([lat, lng], 14);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors', maxZoom: 19
+                }).addTo(map);
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup('@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Title))').openPopup();
+            })();
+        </script>
+    }
+
+    <script>
+        // ── CSRF helper ────────────────────────────────────────────────────
+        function getCsrf() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+        }
+
+        function postJson(url, data) {
+            return fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ ...data, __RequestVerificationToken: getCsrf() })
+            }).then(r => r.json());
+        }
+
+        // ── Like / Dislike ─────────────────────────────────────────────────
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <text>
+        const requestId = @Model.Id;
+
+        document.getElementById('likeBtn')?.addEventListener('click', () => react(true));
+        document.getElementById('dislikeBtn')?.addEventListener('click', () => react(false));
+
+        function react(isLike) {
+            postJson('/HelpRequest/React', { id: requestId, isLike })
+                .then(r => {
+                    if (!r.success) return;
+                    document.getElementById('likeCount').textContent = r.likes;
+                    document.getElementById('dislikeCount').textContent = r.dislikes;
+                    const likeBtn    = document.getElementById('likeBtn');
+                    const dislikeBtn = document.getElementById('dislikeBtn');
+                    likeBtn.className    = 'btn btn-sm d-flex align-items-center gap-1 ' + (r.myReaction === true  ? 'btn-primary' : 'btn-outline-primary');
+                    dislikeBtn.className = 'btn btn-sm d-flex align-items-center gap-1 ' + (r.myReaction === false ? 'btn-danger'  : 'btn-outline-danger');
+                });
+        }
+
+        // ── Star Rating ────────────────────────────────────────────────────
+        const stars = document.querySelectorAll('.star-btn');
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const val = parseInt(star.dataset.value);
+                postJson('/HelpRequest/Rate', { id: requestId, ratingValue: val })
+                    .then(r => {
+                        if (!r.success) return;
+                        stars.forEach((s, i) => {
+                            s.className = 'bi fs-4 text-warning star-btn ' + (i < val ? 'bi-star-fill' : 'bi-star');
+                        });
+                        const avgEl = document.getElementById('avgRatingDisplay');
+                        if (avgEl) avgEl.textContent = r.avgRating + ' / 5';
+                        const countEl = document.getElementById('ratingCountDisplay');
+                        if (countEl) countEl.textContent = r.count;
+                    });
+            });
+            star.addEventListener('mouseenter', () => {
+                const val = parseInt(star.dataset.value);
+                stars.forEach((s, i) => {
+                    s.style.opacity = i < val ? '1' : '0.4';
+                });
+            });
+            star.addEventListener('mouseleave', () => {
+                stars.forEach(s => s.style.opacity = '1');
+            });
+        });
+
+        // ── Comments ───────────────────────────────────────────────────────
+        document.getElementById('postCommentBtn')?.addEventListener('click', () => {
+            const content = document.getElementById('commentInput').value.trim();
+            if (!content) return;
+            postJson('/HelpRequest/PostComment', { id: requestId, content })
+                .then(r => {
+                    if (!r.success) { alert(r.message); return; }
+                    document.getElementById('commentInput').value = '';
+                    const div = document.createElement('div');
+                    div.className = 'border rounded p-3 mb-3 comment-item';
+                    div.id = 'comment_' + r.id;
+                    div.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="fw-semibold small">${escHtml(r.authorName)}</span>
+                            <span class="text-muted small">${escHtml(r.createdAt)}</span>
+                        </div>
+                        <p class="mb-1 comment-text">${escHtml(r.content)}</p>
+                        <div class="d-flex gap-2 mt-1">
+                            <button class="btn btn-link btn-sm p-0 text-muted edit-comment-btn" data-id="${r.id}">Edit</button>
+                            <button class="btn btn-link btn-sm p-0 text-danger delete-comment-btn" data-id="${r.id}">Delete</button>
+                        </div>`;
+                    document.getElementById('commentsList').prepend(div);
+                    attachCommentHandlers(div);
+                });
+        });
+
+        function escHtml(s) {
+            const d = document.createElement('div');
+            d.appendChild(document.createTextNode(s));
+            return d.innerHTML;
+        }
+
+        function attachCommentHandlers(container) {
+            container.querySelectorAll('.edit-comment-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cid  = btn.dataset.id;
+                    const item = document.getElementById('comment_' + cid);
+                    const textEl = item.querySelector('.comment-text');
+                    const cur    = textEl.textContent.trim();
+                    const ta     = document.createElement('textarea');
+                    ta.className = 'form-control mb-1';
+                    ta.rows = 2;
+                    ta.value = cur;
+                    const saveBtn = document.createElement('button');
+                    saveBtn.className = 'btn btn-sm btn-primary me-1';
+                    saveBtn.textContent = 'Save';
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'btn btn-sm btn-outline-secondary';
+                    cancelBtn.textContent = 'Cancel';
+                    textEl.replaceWith(ta);
+                    btn.parentElement.append(saveBtn, cancelBtn);
+                    btn.remove();
+
+                    cancelBtn.addEventListener('click', () => location.reload());
+                    saveBtn.addEventListener('click', () => {
+                        postJson('/HelpRequest/EditComment', { commentId: cid, content: ta.value })
+                            .then(r => { if (r.success) location.reload(); else alert(r.message); });
+                    });
+                });
+            });
+
+            container.querySelectorAll('.delete-comment-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!confirm('Delete this comment?')) return;
+                    postJson('/HelpRequest/DeleteComment', { commentId: btn.dataset.id })
+                        .then(r => {
+                            if (r.success) {
+                                document.getElementById('comment_' + btn.dataset.id)?.remove();
+                            } else alert(r.message);
+                        });
+                });
+            });
+        }
+
+        // Attach to existing comments
+        document.querySelectorAll('.comment-item').forEach(attachCommentHandlers);
+            </text>
+        }
+    </script>
+
+    <!-- Hidden CSRF token for fetch calls -->
+    @Html.AntiForgeryToken()
+}

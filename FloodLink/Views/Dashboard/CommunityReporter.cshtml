@@ -1,0 +1,199 @@
+@{
+    ViewData["Title"] = "Community Reporter Dashboard";
+    var fullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name;
+    int totalReports = ViewBag.TotalReports ?? 0;
+    int pendingReports = ViewBag.PendingReports ?? 0;
+    int inProgressReports = ViewBag.InProgressReports ?? 0;
+    int resolvedReports = ViewBag.ResolvedReports ?? 0;
+    int onBehalfCount = ViewBag.SubmittedOnBehalf ?? 0;
+    var recentReports = ViewBag.RecentReports as List<FloodLink.Models.HelpRequest> ?? new List<FloodLink.Models.HelpRequest>();
+}
+
+<div class="container py-4 mb-5">
+
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h2 class="fw-bold mb-0">📡 Community Reporter Dashboard</h2>
+                <span class="badge bg-warning text-dark">Community Reporter</span>
+            </div>
+            <p class="text-muted mb-0">Welcome, <strong>@fullName</strong> | Ground-Level Field Flood Reporting</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="HelpRequest" asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Submit Field Report
+            </a>
+            <a asp-controller="HelpRequest" asp-action="ReporterDashboard" class="btn btn-outline-primary">
+                <i class="bi bi-journal-text me-1"></i> My Field Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted text-uppercase fw-semibold">My Total Reports</small>
+                        <h2 class="fw-bold mb-0 text-primary">@totalReports</h2>
+                        <small class="text-muted">@onBehalfCount on behalf of others</small>
+                    </div>
+                    <span class="fs-1 text-primary opacity-50"><i class="bi bi-megaphone-fill"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted text-uppercase fw-semibold">Pending Verification</small>
+                        <h2 class="fw-bold mb-0 text-warning">@pendingReports</h2>
+                        <small class="text-muted">Awaiting response team</small>
+                    </div>
+                    <span class="fs-1 text-warning opacity-50"><i class="bi bi-hourglass-split"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-info">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted text-uppercase fw-semibold">In Progress</small>
+                        <h2 class="fw-bold mb-0 text-info">@inProgressReports</h2>
+                        <small class="text-muted">Relief active in field</small>
+                    </div>
+                    <span class="fs-1 text-info opacity-50"><i class="bi bi-gear-wide-connected"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted text-uppercase fw-semibold">Resolved</small>
+                        <h2 class="fw-bold mb-0 text-success">@resolvedReports</h2>
+                        <small class="text-muted">Missions completed</small>
+                    </div>
+                    <span class="fs-1 text-success opacity-50"><i class="bi bi-check-circle-fill"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Module Action Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-3 border-top border-4 border-primary">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="fs-3 text-primary me-2"><i class="bi bi-send-plus-fill"></i></span>
+                        <h4 class="mb-0">Submit Field Flood Report</h4>
+                    </div>
+                    <p class="text-muted flex-grow-1">
+                        Submit real-time ground reports on water levels, road blockages, stranded families, and critical zone hazards with GPS pin and photos.
+                    </p>
+                    <a asp-controller="HelpRequest" asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Submit Field Flood Report
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm p-3 border-top border-4 border-info">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="fs-3 text-info me-2"><i class="bi bi-journal-check"></i></span>
+                        <h4 class="mb-0">My Field Reports</h4>
+                    </div>
+                    <p class="text-muted flex-grow-1">
+                        Track your verified submissions, review relief response statuses, monitor duplicate checks, and inspect situation details.
+                    </p>
+                    <a asp-controller="HelpRequest" asp-action="ReporterDashboard" class="btn btn-outline-primary">
+                        <i class="bi bi-card-checklist me-1"></i> View My Field Reports (@totalReports)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reports Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-1 text-primary"></i> My Recent Submissions</h5>
+            <a asp-controller="HelpRequest" asp-action="ReporterDashboard" class="btn btn-sm btn-outline-primary">
+                View All (@totalReports) &rarr;
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Report</th>
+                        <th>Category</th>
+                        <th>Priority / Urgency</th>
+                        <th>Location</th>
+                        <th>Affected Person</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!recentReports.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <p class="mb-2">You haven't submitted any field flood reports yet.</p>
+                                <a asp-controller="HelpRequest" asp-action="Create" class="btn btn-sm btn-primary">
+                                    Submit Your First Report
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var r in recentReports)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">@r.Title</div>
+                                    <small class="text-muted">@r.CreatedAt.ToLocalTime().ToString("MMM dd, HH:mm")</small>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">@r.Category</span></td>
+                                <td>
+                                    <span class="badge @(r.Priority == "High" ? "bg-danger" : r.Priority == "Medium" ? "bg-warning text-dark" : "bg-info text-dark")">
+                                        @r.Priority
+                                    </span>
+                                    @if (r.IsPotentialDuplicate && !r.DuplicateDismissed)
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Dup</span>
+                                    }
+                                </td>
+                                <td><small>@r.Location</small></td>
+                                <td>
+                                    <small class="text-muted">@(string.IsNullOrEmpty(r.AffectedPersonName) ? "Self" : r.AffectedPersonName)</small>
+                                </td>
+                                <td>
+                                    <span class="badge @(r.Status == "Submitted" ? "bg-warning text-dark" : r.Status == "In Progress" ? "bg-primary" : "bg-success")">
+                                        @r.Status
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a asp-controller="HelpRequest" asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i> View Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

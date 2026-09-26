@@ -1,0 +1,56 @@
+## ── FloodLink BD .gitignore ──────────────────────────────────────────────
+
+# ── Build output ──────────────────────────────────────────────────────────
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ── Visual Studio ─────────────────────────────────────────────────────────
+.vs/
+*.rsuser
+.vscode/settings.json
+
+# ── .NET ──────────────────────────────────────────────────────────────────
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/launchSettings.json
+
+# ── Sensitive configuration — NEVER commit real credentials ───────────────
+# appsettings.Production.json should be configured via environment variables
+# or Azure Key Vault / secret manager in production.
+appsettings.Production.json
+appsettings.Staging.json
+
+# ── Secret Manager (dotnet user-secrets) ──────────────────────────────────
+secrets.json
+
+# ── User uploads (should be served from blob storage in production) ────────
+wwwroot/uploads/
+
+# ── NuGet ─────────────────────────────────────────────────────────────────
+*.nupkg
+.nuget/
+packages/
+
+# ── Logs ──────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS generated files ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Test results ──────────────────────────────────────────────────────────
+TestResults/
+coverage/
+*.trx
+*.coverage
+
+# ── Entity Framework migrations backup ────────────────────────────────────
+# Keep Migrations/ tracked, but ignore designer snapshots if needed:
+# Migrations/*Designer.cs

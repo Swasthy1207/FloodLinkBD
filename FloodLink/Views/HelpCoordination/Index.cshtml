@@ -1,0 +1,110 @@
+﻿@model IEnumerable<FloodLink.Models.OrganizationHelpNeed>
+
+@{
+    ViewData["Title"] = "Organization Help Needs";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Organization Help Coordination</h2>
+            <p class="text-muted">
+                Help requests posted by other organizations.
+            </p>
+        </div>
+
+        <a asp-controller="HelpNeed"
+           asp-action="Create"
+           class="btn btn-primary">
+            + Post Help Need
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No open organization help needs are available right now.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var need in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card h-100 shadow-sm">
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between">
+                                <span class="badge bg-warning text-dark">
+                                    @need.Priority
+                                </span>
+
+                                <span class="badge bg-info">
+                                    @need.Status
+                                </span>
+                            </div>
+
+                            <h5 class="card-title mt-3">
+                                @need.Title
+                            </h5>
+
+                            <p class="text-muted mb-2">
+                                <strong>Organization:</strong>
+                                @need.Organization?.OrganizationName
+                            </p>
+
+                            <p class="mb-2">
+                                <strong>Help Type:</strong>
+                                @need.HelpType
+                            </p>
+
+                            <p class="mb-2">
+                                <strong>Location:</strong>
+                                @need.Location
+                            </p>
+
+                            <p class="card-text">
+                                @(need.Description.Length > 150
+                                    ? need.Description.Substring(0, 150) + "..."
+                                    : need.Description)
+                            </p>
+
+                        </div>
+
+                        <div class="card-footer bg-white border-0">
+
+                            <a asp-action="Details"
+                               asp-route-id="@need.Id"
+                               class="btn btn-outline-primary w-100">
+                                View Need & Offers
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+</div>

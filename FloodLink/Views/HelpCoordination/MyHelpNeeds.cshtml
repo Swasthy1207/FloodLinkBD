@@ -1,0 +1,159 @@
+﻿@model IEnumerable<FloodLink.Models.OrganizationHelpNeed>
+
+@{
+    ViewData["Title"] = "My Help Needs";
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="bi bi-hand-index-thumb me-2"></i>
+                My Help Needs
+            </h3>
+
+            <p class="text-muted mb-0">
+                View the help requests posted by your organization
+                and manage offers received from other organizations.
+            </p>
+        </div>
+
+        <a asp-controller="HelpNeed"
+           asp-action="Create"
+           class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>
+            Post Help Need
+        </a>
+    </div>
+
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info shadow-sm">
+            <i class="bi bi-info-circle me-2"></i>
+            Your organization has not posted any help needs yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var need in Model)
+            {
+                var statusClass = need.Status switch
+                {
+                    "Accepted" => "bg-success",
+                    "In Progress" => "bg-primary",
+                    "Resolved" => "bg-success",
+                    "Rejected" => "bg-danger",
+                    "Under Review" => "bg-warning text-dark",
+                    _ => "bg-secondary"
+                };
+
+                var priorityClass = need.Priority switch
+                {
+                    "High" => "bg-danger",
+                    "Low" => "bg-info text-dark",
+                    _ => "bg-warning text-dark"
+                };
+
+                <div class="col-lg-6">
+
+                    <div class="card shadow-sm h-100 border-0">
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+
+                                <div>
+                                    <h5 class="fw-bold mb-1">
+                                        @need.Title
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        Posted by your organization
+                                    </small>
+                                </div>
+
+                                <span class="badge @statusClass">
+                                    @need.Status
+                                </span>
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <span class="badge @priorityClass me-1">
+                                    @need.Priority Priority
+                                </span>
+
+                                <span class="badge bg-light text-dark border">
+                                    @need.HelpType
+                                </span>
+
+                            </div>
+
+
+                            <p class="text-muted mb-3">
+                                @if (need.Description.Length > 180)
+                                {
+                                    @need.Description.Substring(0, 180)<text>...</text>
+                                }
+                                else
+                                {
+                                    @need.Description
+                                }
+                            </p>
+
+
+                            <div class="small text-muted mb-2">
+
+                                <div class="mb-1">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    <strong>Location:</strong>
+                                    @need.Location
+                                </div>
+
+                                <div class="mb-1">
+                                    <i class="bi bi-people me-1"></i>
+                                    <strong>People Affected:</strong>
+                                    @need.PeopleAffected
+                                </div>
+
+                                <div>
+                                    <i class="bi bi-calendar me-1"></i>
+                                    <strong>Posted:</strong>
+                                    @need.CreatedAt.ToLocalTime()
+                                        .ToString("dd MMM yyyy, hh:mm tt")
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="card-footer bg-white border-0">
+
+                            <a asp-controller="HelpCoordination"
+                               asp-action="Details"
+                               asp-route-id="@need.Id"
+                               class="btn btn-outline-primary">
+
+                                <i class="bi bi-eye me-1"></i>
+                                View Offers & Details
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

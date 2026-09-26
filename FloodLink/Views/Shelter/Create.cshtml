@@ -1,0 +1,84 @@
+@model FloodLink.Models.Shelter
+
+@{
+    ViewData["Title"] = "Add Shelter";
+    var orgs = ViewBag.Organizations as List<FloodLink.Models.Organization> ?? new List<FloodLink.Models.Organization>();
+    var validStatuses = ViewBag.ValidStatuses as string[] ?? Array.Empty<string>();
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Shelters</a></li>
+                    <li class="breadcrumb-item active">Add Shelter</li>
+                </ol>
+            </nav>
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-semibold">Add New Shelter</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="ShelterName" class="form-label fw-semibold"></label>
+                                <input asp-for="ShelterName" class="form-control" maxlength="150" />
+                                <span asp-validation-for="ShelterName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Location" class="form-label fw-semibold"></label>
+                                <input asp-for="Location" class="form-control" maxlength="300" />
+                                <span asp-validation-for="Location" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Capacity" class="form-label fw-semibold"></label>
+                                <input asp-for="Capacity" type="number" class="form-control" min="1" />
+                                <span asp-validation-for="Capacity" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CurrentOccupancy" class="form-label fw-semibold"></label>
+                                <input asp-for="CurrentOccupancy" type="number" class="form-control" min="0" />
+                                <span asp-validation-for="CurrentOccupancy" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Status" class="form-label fw-semibold"></label>
+                                <select asp-for="Status" class="form-select">
+                                    @foreach (var s in validStatuses) { <option value="@s">@s</option> }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="OrganizationId" class="form-label fw-semibold">Managed By Organization</label>
+                                <select asp-for="OrganizationId" class="form-select">
+                                    <option value="">-- None --</option>
+                                    @foreach (var o in orgs) { <option value="@o.Id">@o.OrganizationName</option> }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ContactPerson" class="form-label fw-semibold"></label>
+                                <input asp-for="ContactPerson" class="form-control" maxlength="200" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ContactPhone" class="form-label fw-semibold"></label>
+                                <input asp-for="ContactPhone" class="form-control" maxlength="20" />
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Facilities" class="form-label fw-semibold"></label>
+                                <input asp-for="Facilities" class="form-control" maxlength="500" placeholder="e.g., Clean water, Medical aid, Generator" />
+                                <div class="form-text">Comma-separated list of available facilities.</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Add Shelter</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

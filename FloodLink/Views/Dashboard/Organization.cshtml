@@ -1,0 +1,393 @@
+@model FloodLink.Models.Organization?
+
+@{
+    ViewData["Title"] = "Organization Dashboard";
+    var fullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name;
+    bool hasOrg = Model != null;
+
+    int totalReq = ViewBag.TotalRequests ?? 0;
+    int pendingReq = ViewBag.PendingRequests ?? 0;
+    int completedReq = ViewBag.CompletedRequests ?? 0;
+    int highPriReq = ViewBag.HighPriorityRequests ?? 0;
+    int activeVol = ViewBag.ActiveVolunteers ?? 0;
+    int totalVol = ViewBag.TotalVolunteers ?? 0;
+    int availSupplies = ViewBag.AvailableSuppliesCount ?? 0;
+    int availEquip = ViewBag.AvailableEquipmentCount ?? 0;
+    int totalShelters = ViewBag.TotalShelters ?? 0;
+    int openShelters = ViewBag.OpenShelters ?? 0;
+    int totalCap = ViewBag.TotalCapacity ?? 0;
+    int totalOcc = ViewBag.TotalOccupancy ?? 0;
+    int availSpaces = ViewBag.AvailableShelterSpaces ?? 0;
+    int highRiskAreas = ViewBag.ActiveHighRiskAreas ?? 0;
+    int activeOps = ViewBag.ActiveOperations ?? 0;
+    var recentReqs = ViewBag.RecentRequests as List<FloodLink.Models.HelpRequest> ?? new List<FloodLink.Models.HelpRequest>();
+}
+
+<div class="container py-4 mb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="fw-bold mb-0">🏢 Organization Dashboard</h2>
+            <p class="text-muted mb-0">Welcome, <strong>@fullName</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-bar-graph me-1"></i> Operations Report
+            </a>
+            <a asp-controller="HelpRequest" asp-action="AllRequests" class="btn btn-primary">
+                <i class="bi bi-life-preserver me-1"></i> Relief Requests
+            </a>
+        </div>
+    </div>
+
+    @if (!hasOrg)
+    {
+        <div class="card border-0 shadow-sm p-5 text-center">
+            <div class="mb-3">
+                <span class="fs-1">🏢</span>
+            </div>
+            <h4>You haven't registered an organization yet.</h4>
+            <p class="text-muted">Register your NGO, charity, or response team to coordinate disaster operations.</p>
+            <a asp-controller="Organization" asp-action="Create" class="btn btn-primary mx-auto" style="max-width:240px;">
+                Register Organization
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Organization Banner -->
+        <div class="card border-0 shadow-sm mb-4 p-4 bg-light">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-1">@Model!.OrganizationName</h3>
+                    <span class="badge bg-light text-dark border me-1">@Model.OrganizationType</span>
+                    @{
+                        string badgeClass = Model.Status switch
+                        {
+                            "Approved" => "bg-success",
+                            "Rejected" => "bg-danger",
+                            _          => "bg-warning text-dark"
+                        };
+                    }
+                    <span class="badge @badgeClass">@Model.Status</span>
+                    <span class="badge bg-secondary ms-1">Service Area: @Model.ServiceArea</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Organization" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">Profile Details</a>
+                </div>
+            </div>
+
+            @if (Model.Status == "Pending")
+            {
+                <div class="alert alert-warning border-0 py-2 small mt-3 mb-0">
+                    <strong>Pending Approval:</strong> Your organization is awaiting Super Admin verification.
+                </div>
+            }
+        </div>
+
+        <!-- Core Metrics Grid -->
+        <div class="row g-3 mb-4">
+            <!-- 1. Total Requests -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-primary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted text-uppercase fw-semibold">Total Requests</small>
+                            <h2 class="fw-bold mb-0 text-primary">@totalReq</h2>
+                            <small class="text-danger fw-semibold">@highPriReq High Priority</small>
+                        </div>
+                        <span class="fs-1 text-primary opacity-50"><i class="bi bi-inbox-fill"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Pending & In Progress Requests -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted text-uppercase fw-semibold">Pending Requests</small>
+                            <h2 class="fw-bold mb-0 text-warning">@pendingReq</h2>
+                            <small class="text-success fw-semibold">@completedReq Completed</small>
+                        </div>
+                        <span class="fs-1 text-warning opacity-50"><i class="bi bi-hourglass-split"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Active Volunteers -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-success">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted text-uppercase fw-semibold">Active Volunteers</small>
+                            <h2 class="fw-bold mb-0 text-success">@activeVol</h2>
+                            <small class="text-muted">@totalVol total affiliated</small>
+                        </div>
+                        <span class="fs-1 text-success opacity-50"><i class="bi bi-people-fill"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Available Resources & Equipment -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-info">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted text-uppercase fw-semibold">Available Resources</small>
+                            <h2 class="fw-bold mb-0 text-info">@availSupplies</h2>
+                            <small class="text-muted">@availEquip Rescue Equipment units</small>
+                        </div>
+                        <span class="fs-1 text-info opacity-50"><i class="bi bi-box-seam-fill"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Row: Shelters & Disaster Stats -->
+        <div class="row g-4 mb-4">
+            <!-- Shelter Information Card -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-house-door-fill text-primary me-2"></i> Shelter Information</h5>
+                        <a asp-controller="Shelter" asp-action="Index" class="btn btn-sm btn-outline-primary">Manage Shelters &rarr;</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 text-center mb-3">
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted text-uppercase fw-semibold d-block">Open Shelters</small>
+                                    <h3 class="fw-bold mb-0 text-success">@openShelters</h3>
+                                    <small class="text-muted">of @totalShelters total</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted text-uppercase fw-semibold d-block">Total Capacity</small>
+                                    <h3 class="fw-bold mb-0 text-dark">@totalCap</h3>
+                                    <small class="text-muted">people</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted text-uppercase fw-semibold d-block">Available Space</small>
+                                    <h3 class="fw-bold mb-0 text-primary">@availSpaces</h3>
+                                    <small class="text-muted">vacant spots</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        @{
+                            int shelterPct = totalCap > 0 ? (int)Math.Min(100, Math.Round((double)totalOcc / totalCap * 100)) : 0;
+                        }
+                        <label class="form-label small fw-semibold text-muted mb-1">Overall Shelter Occupancy: @shelterPct% (@totalOcc / @totalCap)</label>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar @(shelterPct >= 90 ? "bg-danger" : shelterPct >= 70 ? "bg-warning" : "bg-success")" 
+                                 role="progressbar" style="width: @shelterPct%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disaster Statistics & Preparedness Card -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-shield-exclamation text-danger me-2"></i> Disaster Statistics</h5>
+                        <a asp-controller="HighRiskArea" asp-action="Index" class="btn btn-sm btn-outline-danger">High-Risk Areas &rarr;</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 text-center mb-3">
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted text-uppercase fw-semibold d-block">Critical Risk Areas</small>
+                                    <h3 class="fw-bold mb-0 text-danger">@highRiskAreas</h3>
+                                    <small class="text-muted">danger zones</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted text-uppercase fw-semibold d-block">Boat Required</small>
+                                    <h3 class="fw-bold mb-0 text-primary">@ViewBag.BoatRequiredAreas</h3>
+                                    <small class="text-muted">water access</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <small class="text-muted text-uppercase fw-semibold d-block">Active Operations</small>
+                                    <h3 class="fw-bold mb-0 text-success">@activeOps</h3>
+                                    <small class="text-muted">coordinated missions</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-2">
+                            
+                            <a asp-controller="Announcement" asp-action="Create" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-broadcast me-1"></i> Publish Warning
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Module Navigation Cards -->
+        <h5 class="fw-bold mb-3">⚡ Relief Management Modules</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <a asp-controller="Resource" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm p-3 h-100 text-center hover-shadow">
+                        <div class="fs-2 text-primary mb-1"><i class="bi bi-box-seam"></i></div>
+                        <h6 class="fw-bold text-dark mb-0">Resource & Equipment</h6>
+                        <small class="text-muted"></small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <a asp-controller="Announcement" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm p-3 h-100 text-center hover-shadow">
+                        <div class="fs-2 text-danger mb-1"><i class="bi bi-broadcast"></i></div>
+                        <h6 class="fw-bold text-dark mb-0">Emergency Notices</h6>
+                        <small class="text-muted"></small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <a asp-controller="Preparedness" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm p-3 h-100 text-center hover-shadow">
+                        <div class="fs-2 text-success mb-1"><i class="bi bi-shield-check"></i></div>
+                        <h6 class="fw-bold text-dark mb-0">Preparedness Module</h6>
+                        <small class="text-muted"></small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <a asp-controller="HighRiskArea" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm p-3 h-100 text-center hover-shadow">
+                        <div class="fs-2 text-warning mb-1"><i class="bi bi-geo-alt-fill"></i></div>
+                        <h6 class="fw-bold text-dark mb-0">High-Risk Areas</h6>
+                        <small class="text-muted"></small>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+
+    <a asp-controller="Volunteer"
+       asp-action="Index"
+       class="text-decoration-none">
+
+        <div class="card border-0 shadow-sm p-3 h-100 text-center">
+
+            <div class="fs-2 text-success mb-1">
+                <i class="bi bi-people-fill"></i>
+            </div>
+
+            <h6 class="fw-bold text-dark mb-0">
+                My Volunteers
+            </h6>
+
+            <small class="text-muted">
+                Availability & Activity
+            </small>
+
+        </div>
+
+    </a>
+
+</div>
+
+<div class="col-md-3 col-sm-6">
+
+    <a asp-controller="HelpNeed"
+       asp-action="Create"
+       class="text-decoration-none">
+
+        <div class="card border-0 shadow-sm p-3 h-100 text-center">
+
+            <div class="fs-2 text-danger mb-1">
+                <i class="bi bi-life-preserver"></i>
+            </div>
+
+            <h6 class="fw-bold text-dark mb-0">
+                Request External Help
+            </h6>
+
+            <small class="text-muted">
+                Ask for Multi-Org Support
+            </small>
+
+        </div>
+
+    </a>
+
+</div>
+        </div>
+
+        <!-- Recent Help Requests Stream -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-1 text-primary"></i> Recent Incoming Help Requests</h5>
+                <a asp-controller="HelpRequest" asp-action="AllRequests" class="btn btn-sm btn-outline-primary">View All &rarr;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Request</th>
+                            <th>Category</th>
+                            <th>Priority / Urgency</th>
+                            <th>People</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!recentReqs.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">No recent requests recorded.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var r in recentReqs)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@r.Title</div>
+                                        <small class="text-muted">@r.CreatedAt.ToLocalTime().ToString("MMM dd, HH:mm")</small>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">@r.Category</span></td>
+                                    <td>
+                                        <span class="badge @(r.Priority == "High" ? "bg-danger" : r.Priority == "Medium" ? "bg-warning text-dark" : "bg-info text-dark")">
+                                            @r.Priority
+                                        </span>
+                                        @if (r.IsPotentialDuplicate && !r.DuplicateDismissed)
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Dup</span>
+                                        }
+                                    </td>
+                                    <td>@r.NumberOfPeople</td>
+                                    <td><small>@r.Location</small></td>
+                                    <td>
+                                        <span class="badge @(r.Status == "Submitted" ? "bg-warning text-dark" : r.Status == "In Progress" ? "bg-primary" : "bg-success")">
+                                            @r.Status
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-controller="HelpRequest" asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-secondary">
+                                            Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

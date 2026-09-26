@@ -1,0 +1,208 @@
+@model IEnumerable<FloodLink.Models.Organization>
+
+@{
+    ViewData["Title"] = "Organizations";
+    bool isSuperAdmin = (bool)(ViewBag.IsSuperAdmin ?? false);
+    string[] orgTypes = (string[])(ViewBag.OrgTypes ?? Array.Empty<string>());
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages  = ViewBag.TotalPages ?? 1;
+    int totalCount  = ViewBag.TotalCount ?? 0;
+    string currentSearch = ViewBag.Search ?? "";
+    string currentType   = ViewBag.OrgType ?? "";
+    string currentStatus = ViewBag.Status ?? "";
+    string currentSort   = ViewBag.SortOrder ?? "";
+}
+
+<div class="container py-4">
+
+   <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">Organizations</h2>
+        <p class="text-muted small mb-0">
+            @totalCount organization(s) found
+        </p>
+    </div>
+</div>
+
+    <!-- Search, Filter, Sort Form -->
+    <form method="get" asp-action="Index" class="mb-4">
+        <div class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="search" value="@currentSearch"
+                       class="form-control form-control-sm"
+                       placeholder="Search by name, type, or area..." />
+            </div>
+            <div class="col-md-2">
+                <select name="orgType" class="form-select form-select-sm">
+                    <option value="">All Types</option>
+                    @foreach (var t in orgTypes)
+                    {
+                        <option value="@t" selected="@(currentType == t ? "selected" : null)">@t</option>
+                    }
+                </select>
+            </div>
+            @if (isSuperAdmin)
+            {
+                <div class="col-md-2">
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">All Statuses</option>
+                        <option value="Pending"  selected="@(currentStatus=="Pending"  ? "selected" : null)">Pending</option>
+                        <option value="Approved" selected="@(currentStatus=="Approved" ? "selected" : null)">Approved</option>
+                        <option value="Rejected" selected="@(currentStatus=="Rejected" ? "selected" : null)">Rejected</option>
+                    </select>
+                </div>
+            }
+            <div class="col-md-2">
+                <select name="sortOrder" class="form-select form-select-sm">
+                    <option value=""          selected="@(currentSort==""           ? "selected" : null)">Newest First</option>
+                    <option value="oldest"    selected="@(currentSort=="oldest"     ? "selected" : null)">Oldest First</option>
+                    <option value="name_asc"  selected="@(currentSort=="name_asc"   ? "selected" : null)">Name A–Z</option>
+                    <option value="name_desc" selected="@(currentSort=="name_desc"  ? "selected" : null)">Name Z–A</option>
+                    @if (isSuperAdmin)
+                    {
+                        <option value="status_asc"  selected="@(currentSort=="status_asc"  ? "selected" : null)">Status A–Z</option>
+                        <option value="status_desc" selected="@(currentSort=="status_desc" ? "selected" : null)">Status Z–A</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-fill">Search</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm flex-fill">Reset</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Organization Table -->
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Organization Name</th>
+                        <th>Type</th>
+                        <th>Service Area</th>
+                        <th>Contact</th>
+                        @if (isSuperAdmin)
+                        {
+                            <th>Status</th>
+                            <th>Registered</th>
+                        }
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var org in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@org.OrganizationName</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">@org.OrganizationType</span>
+                            </td>
+                            <td class="text-muted small">@org.ServiceArea</td>
+                            <td class="small">
+                                <div>@org.ContactEmail</div>
+                                <div class="text-muted">@org.ContactPhone</div>
+                            </td>
+                            @if (isSuperAdmin)
+                            {
+                                <td>
+                                    @{
+                                        string badgeClass = org.Status switch
+                                        {
+                                            "Approved" => "bg-success",
+                                            "Rejected" => "bg-danger",
+                                            _          => "bg-warning text-dark"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@org.Status</span>
+                                </td>
+                                <td class="text-muted small">@org.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            }
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@org.Id"
+                                   class="btn btn-outline-primary btn-sm">View</a>
+
+                                @if (isSuperAdmin || org.ManagedByUserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                                
+                                @if (isSuperAdmin && org.Status == "Pending")
+                                {
+                                    <form asp-action="Approve" asp-route-id="@org.Id"
+                                          method="post" class="d-inline ms-1">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                    </form>
+                                    <form asp-action="Reject" asp-route-id="@org.Id"
+                                          method="post" class="d-inline ms-1">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                    </form>
+                                }
+
+                                @if (isSuperAdmin && org.Status != "Approved")
+                                {
+                                    <a asp-action="Delete" asp-route-id="@org.Id"
+                                       class="btn btn-outline-danger btn-sm ms-1">Delete</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Organization list pagination">
+                <ul class="pagination pagination-sm justify-content-center mt-3">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-page="@(currentPage - 1)"
+                           asp-route-search="@currentSearch"
+                           asp-route-orgType="@currentType"
+                           asp-route-status="@currentStatus"
+                           asp-route-sortOrder="@currentSort">
+                            &laquo; Prev
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@i"
+                               asp-route-search="@currentSearch"
+                               asp-route-orgType="@currentType"
+                               asp-route-status="@currentStatus"
+                               asp-route-sortOrder="@currentSort">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-page="@(currentPage + 1)"
+                           asp-route-search="@currentSearch"
+                           asp-route-orgType="@currentType"
+                           asp-route-status="@currentStatus"
+                           asp-route-sortOrder="@currentSort">
+                            Next &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="text-center py-5 text-muted">
+            <p class="fs-5">No organizations found.</p>
+            @if (!string.IsNullOrEmpty(currentSearch) || !string.IsNullOrEmpty(currentType) || !string.IsNullOrEmpty(currentStatus))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+            }
+        </div>
+    }
+
+</div>

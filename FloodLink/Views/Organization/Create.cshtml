@@ -1,0 +1,146 @@
+@model FloodLink.Models.OrganizationViewModel
+
+@{
+    ViewData["Title"] = "Register Organization";
+    string[] orgTypes = (string[])(ViewBag.OrgTypes ?? Array.Empty<string>());
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+
+            <div class="mb-3">
+                <a asp-action="Index" class="text-decoration-none small text-muted">&larr; Back to Organizations</a>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <h2 class="mb-1">Register Organization</h2>
+                    <p class="text-muted small mb-4">
+                        New organizations require Super Admin approval before becoming active.
+                    </p>
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                        <div class="row g-3">
+
+                            <!-- Organization Name -->
+                            <div class="col-12">
+                                <label asp-for="OrganizationName" class="form-label"></label>
+                                <input asp-for="OrganizationName" id="orgNameInput"
+                                       class="form-control"
+                                       placeholder="e.g. Chattogram Relief Society" />
+                                <span asp-validation-for="OrganizationName" class="text-danger small"></span>
+                                <div id="orgNameFeedback" class="small mt-1" style="min-height:18px;"></div>
+                            </div>
+
+                            <!-- Organization Type -->
+                            <div class="col-md-6">
+                                <label asp-for="OrganizationType" class="form-label"></label>
+                                <select asp-for="OrganizationType" class="form-select">
+                                    <option value="">-- Select Type --</option>
+                                    @foreach (var t in orgTypes)
+                                    {
+                                        <option value="@t">@t</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="OrganizationType" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Contact Email -->
+                            <div class="col-md-6">
+                                <label asp-for="ContactEmail" class="form-label"></label>
+                                <input asp-for="ContactEmail" class="form-control"
+                                       placeholder="org@example.com" />
+                                <span asp-validation-for="ContactEmail" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Contact Phone -->
+                            <div class="col-md-6">
+                                <label asp-for="ContactPhone" class="form-label"></label>
+                                <input asp-for="ContactPhone" class="form-control"
+                                       placeholder="01712345678" />
+                                <span asp-validation-for="ContactPhone" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Service Area -->
+                            <div class="col-md-6">
+                                <label asp-for="ServiceArea" class="form-label"></label>
+                                <input asp-for="ServiceArea" class="form-control"
+                                       placeholder="e.g. Feni, Noakhali, Cox's Bazar" />
+                                <span asp-validation-for="ServiceArea" class="text-danger small"></span>
+                                <div class="form-text text-muted small">Areas where this organization operates.</div>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label"></label>
+                                <input asp-for="Address" class="form-control"
+                                       placeholder="Full address of the organization's office" />
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label"></label>
+                                <textarea asp-for="Description" class="form-control" rows="4"
+                                          placeholder="Describe the organization's mission, activities, and how it helps during disasters..."></textarea>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+
+                        </div>
+
+                        <div class="alert alert-info border-0 mt-4 py-2 small">
+                            After submitting, the organization will be in <strong>Pending</strong> status
+                            until a Super Admin approves it.
+                        </div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                Submit for Approval
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const nameInput = document.getElementById("orgNameInput");
+            const nameFeedback = document.getElementById("orgNameFeedback");
+            let debounceTimer;
+
+            if (nameInput && nameFeedback) {
+                nameInput.addEventListener("input", function () {
+                    clearTimeout(debounceTimer);
+                    const val = nameInput.value.trim();
+                    if (val.length < 3) { nameFeedback.innerHTML = ""; return; }
+                    nameFeedback.innerHTML = '<span class="text-muted">Checking...</span>';
+                    debounceTimer = setTimeout(async function () {
+                        try {
+                            const res = await fetch(`/Organization/CheckNameAvailability?name=${encodeURIComponent(val)}`);
+                            const data = await res.json();
+                            nameFeedback.innerHTML = data.available
+                                ? `<span class="text-success fw-semibold">&#10003; ${data.message}</span>`
+                                : `<span class="text-danger fw-semibold">&#10007; ${data.message}</span>`;
+                        } catch { nameFeedback.innerHTML = ""; }
+                    }, 450);
+                });
+            }
+        });
+    </script>
+}

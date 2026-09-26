@@ -1,0 +1,146 @@
+@model IEnumerable<FloodLink.Models.DisasterOperation>
+@using FloodLink.Models
+
+@{
+    ViewData["Title"] = "Coordination Requests — Admin";
+    var partnerMap = ViewBag.PartnerMap as Dictionary<int, List<Organization>> ?? new();
+    var filterStatus = ViewBag.FilterStatus as string;
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-shield-fill me-2 text-danger"></i>Coordination Requests
+        </h2>
+        <p class="text-muted mb-0">Super Admin control panel for all relief operations and inter-organization coordination.</p>
+    </div>
+
+    <!-- Status filter tabs -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+        <a asp-action="CoordinationRequests" class="btn btn-sm @(filterStatus == null ? "btn-fl-green" : "btn-outline-secondary")">All</a>
+        @foreach (var s in new[] { "Pending", "Active", "Completed", "Cancelled" })
+        {
+            <a asp-action="CoordinationRequests" asp-route-status="@s"
+               class="btn btn-sm @(filterStatus == s ? "btn-fl-green" : "btn-outline-secondary")">
+                @s
+            </a>
+        }
+    </div>
+
+    <!-- Summary counts -->
+    <div class="row g-3 mb-4">
+        @foreach (var (label, color) in new[] {("Pending","warning"),("Active","success"),("Completed","secondary"),("Cancelled","danger")})
+        {
+            var cnt = Model.Count(m => m.Status == label);
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 text-center">
+                    <div class="fw-bold fs-4 text-@color">@cnt</div>
+                    <div class="text-muted small">@label</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No operations found for the selected filter.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Operation</th>
+                        <th>Lead Org</th>
+                        <th>Location</th>
+                        <th>Partners</th>
+                        <th>Status</th>
+                        <th>Started</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var op in Model)
+                    {
+                        var partners = partnerMap.TryGetValue(op.DisasterOperationId, out var p) ? p : new List<Organization>();
+                        var badgeClass = op.Status switch {
+                            "Active"    => "bg-warning text-dark",
+                            "Completed" => "bg-fl-green text-white",
+                            "Cancelled" => "bg-danger",
+                            _           => "bg-secondary"
+                        };
+                        <tr>
+                            <td>
+                                <strong>@op.OperationName</strong>
+                                @if (!string.IsNullOrEmpty(op.DisasterType))
+                                {
+                                    <div class="small text-muted">@op.DisasterType</div>
+                                }
+                            </td>
+                            <td class="small">@op.LeadOrganization.OrganizationName</td>
+                            <td class="small text-muted">@op.Location</td>
+                            <td>
+                                @if (partners.Any())
+                                {
+                                    <span class="badge bg-light text-muted border">@partners.Count partner@(partners.Count > 1 ? "s" : "")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+                            <td><span class="badge @badgeClass">@op.Status</span></td>
+                            <td class="small text-muted">@op.StartDate.ToString("dd MMM yyyy")</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a asp-action="OperationDetails" asp-route-id="@op.DisasterOperationId"
+                                       class="btn btn-outline-secondary btn-sm" title="View / Manage">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <!-- Quick status buttons -->
+                                    @if (op.Status == "Pending")
+                                    {
+                                        <form asp-action="UpdateOperationStatus" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@op.DisasterOperationId" />
+                                            <button type="submit" name="newStatus" value="Active"
+                                                    class="btn btn-fl-green btn-sm" title="Activate">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                        </form>
+                                        <form asp-action="UpdateOperationStatus" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@op.DisasterOperationId" />
+                                            <button type="submit" name="newStatus" value="Cancelled"
+                                                    class="btn btn-outline-danger btn-sm" title="Cancel"
+                                                    onclick="return confirm('Cancel this operation?')">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (op.Status == "Active")
+                                    {
+                                        <form asp-action="UpdateOperationStatus" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@op.DisasterOperationId" />
+                                            <button type="submit" name="newStatus" value="Completed"
+                                                    class="btn btn-success btn-sm" title="Mark Completed"
+                                                    onclick="return confirm('Mark as Completed?')">
+                                                <i class="bi bi-check2"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+</div>

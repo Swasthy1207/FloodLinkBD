@@ -1,0 +1,242 @@
+﻿@model IEnumerable<FloodLink.Models.HelpRequest>
+
+@{
+    ViewData["Title"] = "Track My Requests";
+
+    string GetStatusClass(string status)
+    {
+        return status switch
+        {
+            "Submitted" => "bg-secondary",
+            "In Progress" => "bg-primary",
+            "Resolved" => "bg-success",
+            "Closed" => "bg-dark",
+            _ => "bg-secondary"
+        };
+    }
+
+    int GetStatusStep(string status)
+    {
+        return status switch
+        {
+            "Submitted" => 1,
+            "In Progress" => 2,
+            "Resolved" => 3,
+            "Closed" => 4,
+            _ => 1
+        };
+    }
+
+    string[] statusSteps =
+    {
+        "Submitted",
+        "In Progress",
+        "Resolved",
+        "Closed"
+    };
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Track My Requests</h2>
+            <p class="text-muted mb-0">
+                Track the current status and progress of your submitted help requests.
+            </p>
+        </div>
+
+        <a asp-controller="HelpRequest"
+           asp-action="MyRequests"
+           class="btn btn-outline-primary">
+            View My Requests
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            You have not submitted any help requests yet.
+        </div>
+    }
+    else
+    {
+        foreach (var request in Model)
+        {
+            var currentStep = GetStatusStep(request.Status);
+
+            <div class="card shadow-sm mb-4">
+
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <h5 class="mb-1">@request.Title</h5>
+
+                            <small class="text-muted">
+                                Request #@request.Id
+                                •
+                                @request.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                            </small>
+                        </div>
+
+                        <span class="badge @GetStatusClass(request.Status) fs-6">
+                            @request.Status
+                        </span>
+
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row mb-4">
+
+                        <div class="col-md-4">
+                            <strong>Category</strong>
+                            <div class="text-muted">
+                                @request.Category
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Location</strong>
+                            <div class="text-muted">
+                                @request.Location
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Priority</strong>
+                            <div class="text-muted">
+                                @request.Priority
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <h6 class="fw-bold mb-3">
+                        Request Progress
+                    </h6>
+
+                    <div class="row text-center">
+
+                        @for (int i = 0; i < statusSteps.Length; i++)
+                        {
+                            var stepNumber = i + 1;
+                            var stepName = statusSteps[i];
+
+                            bool completed = stepNumber < currentStep;
+                            bool current = stepNumber == currentStep;
+
+                            <div class="col">
+
+                                <div class="mb-2">
+
+                                    @if (completed)
+                                    {
+                                        <span class="badge rounded-circle bg-success p-3">
+                                            ✓
+                                        </span>
+                                    }
+                                    else if (current)
+                                    {
+                                        <span class="badge rounded-circle bg-primary p-3">
+                                            ●
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-circle bg-secondary p-3">
+                                            @stepNumber
+                                        </span>
+                                    }
+
+                                </div>
+
+                                <div class="small fw-semibold">
+                                    @stepName
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                    <hr />
+
+                    <h6 class="fw-bold mb-3">
+                        Status History
+                    </h6>
+
+                    @if (request.StatusLogs != null && request.StatusLogs.Any())
+                    {
+                        <div class="list-group">
+
+                            @foreach (var log in request.StatusLogs
+                                .OrderByDescending(x => x.ChangedAt))
+                            {
+                                <div class="list-group-item">
+
+                                    <div class="d-flex justify-content-between">
+
+                                        <div>
+                                            <strong>
+                                                @log.ChangeType
+                                            </strong>
+
+                                            @if (!string.IsNullOrEmpty(log.OldValue))
+                                            {
+                                                <span class="text-muted">
+                                                    @log.OldValue
+                                                    →
+                                                </span>
+                                            }
+
+                                            <strong>
+                                                @log.NewValue
+                                            </strong>
+
+                                            @if (!string.IsNullOrEmpty(log.Note))
+                                            {
+                                                <div class="small text-muted mt-1">
+                                                    @log.Note
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <small class="text-muted">
+                                           @(log.ChangedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt"))
+                                        </small>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border">
+                            No status updates have been recorded yet.
+                        </div>
+                    }
+
+                    <div class="mt-3">
+
+                        <a asp-controller="HelpRequest"
+                           asp-action="Details"
+                           asp-route-id="@request.Id"
+                           class="btn btn-sm btn-outline-primary">
+                            View Details
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+    }
+
+</div>

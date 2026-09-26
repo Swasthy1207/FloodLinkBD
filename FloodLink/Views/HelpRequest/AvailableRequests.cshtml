@@ -1,0 +1,164 @@
+@model IEnumerable<FloodLink.Models.HelpRequest>
+
+@{
+    ViewData["Title"] = "Available Requests";
+    var categories = (string[])(ViewBag.Categories ?? Array.Empty<string>());
+
+    string PriorityBadge(string p) => p switch
+    {
+        "High"   => "bg-danger",
+        "Medium" => "bg-warning text-dark",
+        "Low"    => "bg-info text-dark",
+        _        => "bg-secondary"
+    };
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Available Help Requests</h3>
+            <p class="text-muted mb-0 small">Citizens who need assistance — accept to be assigned.</p>
+        </div>
+        <a asp-controller="HelpRequest" asp-action="MyAssignments"
+           class="btn btn-outline-secondary btn-sm">
+            My Assignments
+        </a>
+    </div>
+
+    <!-- Filter / Search -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <form asp-controller="HelpRequest" asp-action="AvailableRequests" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Search</label>
+                        <input type="text" name="search" value="@ViewBag.Search"
+                               class="form-control form-control-sm"
+                               placeholder="Title, location…" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Category</label>
+                        <select name="category" class="form-select form-select-sm">
+                            <option value="">All Categories</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat" selected="@(ViewBag.Category == cat)">@cat</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Sort By</label>
+                        <select name="sortOrder" class="form-select form-select-sm">
+                            <option value="">Newest First</option>
+                            <option value="oldest"   selected="@(ViewBag.SortOrder == "oldest")">Oldest First</option>
+                            <option value="priority" selected="@(ViewBag.SortOrder == "priority")">Priority (High first)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No requests are currently available.</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var r in Model)
+            {
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-light text-dark border">@r.Category</span>
+                                <span class="badge @PriorityBadge(r.Priority)">@r.Priority</span>
+                            </div>
+                            <h6 class="card-title mb-1">@r.Title</h6>
+                            <p class="card-text text-muted small mb-2"
+                               style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                                @r.Description
+                            </p>
+                            <div class="small text-muted mb-1">
+                                <strong>Location:</strong> @r.Location
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <strong>People:</strong> @r.NumberOfPeople
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <strong>Contact:</strong> @r.ContactInformation
+                            </div>
+                            <div class="small text-muted mb-3">
+                                <strong>Submitted:</strong> @r.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                            </div>
+
+                            @if (r.Status == "Submitted")
+                            {
+                                <form asp-controller="HelpRequest"
+                                      asp-action="AcceptRequest"
+                                      method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        Accept &amp; Get Assigned
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">In Progress</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if ((int)ViewBag.TotalPages > 1)
+        {
+            <nav class="mt-4" aria-label="Pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @((int)ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-controller="HelpRequest" asp-action="AvailableRequests"
+                           asp-route-page="@((int)ViewBag.CurrentPage - 1)"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-category="@ViewBag.Category"
+                           asp-route-sortOrder="@ViewBag.SortOrder">
+                            &laquo;
+                        </a>
+                    </li>
+                    @for (int p = 1; p <= (int)ViewBag.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == (int)ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-controller="HelpRequest" asp-action="AvailableRequests"
+                               asp-route-page="@p"
+                               asp-route-search="@ViewBag.Search"
+                               asp-route-category="@ViewBag.Category"
+                               asp-route-sortOrder="@ViewBag.SortOrder">
+                                @p
+                            </a>
+                        </li>
+                    }
+                    <li class="page-item @((int)ViewBag.CurrentPage == (int)ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-controller="HelpRequest" asp-action="AvailableRequests"
+                           asp-route-page="@((int)ViewBag.CurrentPage + 1)"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-category="@ViewBag.Category"
+                           asp-route-sortOrder="@ViewBag.SortOrder">
+                            &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+</div>

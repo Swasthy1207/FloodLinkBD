@@ -1,0 +1,98 @@
+@model FloodLink.Models.PreparednessActivity
+
+@{
+    ViewData["Title"] = "Schedule Preparedness Activity";
+    var activityTypes = ViewBag.ActivityTypes as string[] ?? Array.Empty<string>();
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+    var orgs = ViewBag.Organizations as List<FloodLink.Models.Organization> ?? new List<FloodLink.Models.Organization>();
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-shield-check me-2"></i> Schedule Pre-Disaster Activity</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-bold"></label>
+                            <input asp-for="Title" class="form-control" placeholder="e.g. Pre-Monsoon Volunteer Boat Rescue Drill, Union Flood Readiness Workshop" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="ActivityType" class="form-label fw-bold"></label>
+                                <select asp-for="ActivityType" class="form-select">
+                                    @foreach (var t in activityTypes)
+                                    {
+                                        <option value="@t">@t</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="OrganizationId" class="form-label fw-bold">Organizing Body</label>
+                                <select asp-for="OrganizationId" class="form-select">
+                                    <option value="">-- Multi-Organization Joint Effort --</option>
+                                    @foreach (var o in orgs)
+                                    {
+                                        <option value="@o.Id">@o.OrganizationName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="ScheduledDate" class="form-label fw-bold"></label>
+                                <input asp-for="ScheduledDate" type="datetime-local" class="form-control" />
+                                <span asp-validation-for="ScheduledDate" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Location" class="form-label fw-bold"></label>
+                                <input asp-for="Location" class="form-control" placeholder="e.g. Sylhet District Council Hall, Surma Riverbank" />
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="ParticipantCount" class="form-label fw-bold">Targeted / Registered Participants</label>
+                                <input asp-for="ParticipantCount" type="number" min="0" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Status" class="form-label fw-bold"></label>
+                                <select asp-for="Status" class="form-select">
+                                    @foreach (var s in statuses)
+                                    {
+                                        <option value="@s">@s</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold"></label>
+                            <textarea asp-for="Description" rows="4" class="form-control" placeholder="Detailed objectives, agenda, equipment required, and training topics..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="OutcomeNotes" class="form-label fw-bold">Expected Outcomes / Preparedness Goals</label>
+                            <textarea asp-for="OutcomeNotes" rows="2" class="form-control" placeholder="Key outcomes expected from this readiness session..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4"><i class="bi bi-calendar-plus me-1"></i> Save Activity</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,111 @@
+@model FloodLink.Models.Resource
+
+@{
+    ViewData["Title"] = "Add Resource / Equipment";
+    var categories = ViewBag.Categories as string[] ?? Array.Empty<string>();
+    var units = ViewBag.Units as string[] ?? Array.Empty<string>();
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+    var orgs = ViewBag.Organizations as List<FloodLink.Models.Organization> ?? new List<FloodLink.Models.Organization>();
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i> Add Relief Resource or Equipment</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="ResourceName" class="form-label fw-bold"></label>
+                            <input asp-for="ResourceName" class="form-control" placeholder="e.g. Standard Family Food Pack, Speed Rescue Boat #3, Life Jacket Pack" />
+                            <span asp-validation-for="ResourceName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Category" class="form-label fw-bold"></label>
+                                <select asp-for="Category" class="form-select">
+                                    <optgroup label="Relief Supplies">
+                                        <option value="Food Packets">Food Packets</option>
+                                        <option value="Drinking Water">Drinking Water</option>
+                                        <option value="Medicine">Medicine</option>
+                                        <option value="Blankets">Blankets</option>
+                                        <option value="Baby Food">Baby Food</option>
+                                        <option value="Hygiene Kits">Hygiene Kits</option>
+                                    </optgroup>
+                                    <optgroup label="Rescue Equipment & Vehicles">
+                                        <option value="Rescue Boats">Rescue Boats</option>
+                                        <option value="Life Jackets">Life Jackets</option>
+                                        <option value="Ambulances">Ambulances</option>
+                                        <option value="Emergency Vehicles">Emergency Vehicles</option>
+                                    </optgroup>
+                                    <option value="Other Supplies">Other Supplies</option>
+                                </select>
+                                <span asp-validation-for="Category" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="OrganizationId" class="form-label fw-bold">Owning / Managing Organization</label>
+                                <select asp-for="OrganizationId" class="form-select">
+                                    <option value="">-- General / Multi-Org Inventory --</option>
+                                    @foreach (var o in orgs)
+                                    {
+                                        <option value="@o.Id">@o.OrganizationName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="Quantity" class="form-label fw-bold"></label>
+                                <input asp-for="Quantity" type="number" min="0" class="form-control" />
+                                <span asp-validation-for="Quantity" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Unit" class="form-label fw-bold"></label>
+                                <select asp-for="Unit" class="form-select">
+                                    @foreach (var u in units)
+                                    {
+                                        <option value="@u">@u</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Unit" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Status" class="form-label fw-bold"></label>
+                                <select asp-for="Status" class="form-select">
+                                    @foreach (var s in statuses)
+                                    {
+                                        <option value="@s">@s</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Location" class="form-label fw-bold"></label>
+                            <input asp-for="Location" class="form-control" placeholder="e.g. Warehouse 2, Sylhet Sadar Relief Center" />
+                            <span asp-validation-for="Location" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Notes" class="form-label fw-bold"></label>
+                            <textarea asp-for="Notes" rows="3" class="form-control" placeholder="Condition, expiry date, engine maintenance notes, or special handling instructions..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-1"></i> Save Item</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

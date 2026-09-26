@@ -1,0 +1,501 @@
+/* ── FloodLinkBD brand tokens ─────────────────────────────────────── */
+:root {
+    --fl-green:      #006A4E;   /* Bangladesh flag green */
+    --fl-red:        #F42A41;   /* Bangladesh flag red */
+    --fl-teal:       #0D9488;   /* Supporting teal for water/tech */
+    --fl-light-bg:   #F7F9FC;
+    --fl-border:     #E2E8F0;
+}
+
+html {
+    font-size: 14px;
+    min-height: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Poppins', 'Inter', Arial, Helvetica, sans-serif;
+    color: #1a2332;
+    background-color: #fff;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── FloodLinkBD logo + brand ─────────────────────────────────────── */
+.fl-brand-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--fl-green);
+    letter-spacing: -0.02em;
+}
+.fl-brand-bd {
+    color: var(--fl-red);
+}
+.fl-logo-badge {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ── Brand colour utilities ───────────────────────────────────────── */
+.text-fl-green  { color: var(--fl-green) !important; }
+.text-fl-red    { color: var(--fl-red) !important; }
+.bg-fl-green    { background-color: var(--fl-green) !important; }
+.bg-fl-red      { background-color: var(--fl-red) !important; }
+.border-fl-green { border-color: var(--fl-green) !important; }
+
+.btn-fl-green {
+    background-color: var(--fl-green);
+    color: #fff;
+    border: none;
+}
+.btn-fl-green:hover {
+    background-color: #005540;
+    color: #fff;
+}
+.btn-fl-red {
+    background-color: var(--fl-red);
+    color: #fff;
+    border: none;
+}
+.btn-fl-red:hover {
+    background-color: #d41e30;
+    color: #fff;
+}
+
+/* ── Badge override for role pill ─────────────────────────────────── */
+.badge.bg-fl-green {
+    background-color: var(--fl-green) !important;
+    font-weight: 500;
+}
+
+/* ── Status badges ────────────────────────────────────────────────── */
+.badge-submitted    { background-color: #64748b; color: #fff; }
+.badge-in-progress  { background-color: #f59e0b; color: #1a2332; }
+.badge-completed    { background-color: var(--fl-green); color: #fff; }
+.badge-resolved     { background-color: #0d9488; color: #fff; }
+.badge-closed       { background-color: #374151; color: #fff; }
+.badge-pending      { background-color: #f97316; color: #fff; }
+.badge-approved     { background-color: var(--fl-green); color: #fff; }
+.badge-rejected     { background-color: var(--fl-red); color: #fff; }
+
+/* ── Card overrides ───────────────────────────────────────────────── */
+.card {
+    border-radius: 10px;
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+.card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.09) !important;
+}
+
+/* ── Navbar refinements ───────────────────────────────────────────── */
+.navbar-nav .nav-link {
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: color 0.15s;
+}
+.navbar-nav .nav-link:hover {
+    color: var(--fl-green) !important;
+}
+.navbar-nav .nav-link.text-fl-green {
+    color: var(--fl-green) !important;
+}
+
+
+/* ── Dark mode overrides (Bootstrap 5.3 data-bs-theme=dark) ────────── */
+[data-bs-theme="dark"] body {
+    color: #e8e8e8;
+    background-color: #121212;
+}
+
+[data-bs-theme="dark"] .navbar {
+    background-color: #1e1e1e !important;
+    border-bottom-color: #333 !important;
+}
+
+[data-bs-theme="dark"] .navbar-brand {
+    color: #4dd0de !important;
+}
+
+[data-bs-theme="dark"] .navbar-nav .nav-link {
+    color: #ddd !important;
+}
+
+[data-bs-theme="dark"] .navbar-nav .nav-link:hover {
+    color: #4dd0de !important;
+}
+
+[data-bs-theme="dark"] .card {
+    background-color: #1e1e1e;
+    border-color: #333;
+}
+
+[data-bs-theme="dark"] .card-header {
+    background-color: #252525 !important;
+    border-bottom-color: #333 !important;
+}
+
+[data-bs-theme="dark"] .card-footer {
+    background-color: #252525 !important;
+    border-top-color: #333 !important;
+}
+
+[data-bs-theme="dark"] .list-group-item {
+    background-color: #1e1e1e;
+    border-color: #333;
+    color: #e8e8e8;
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #e8e8e8;
+}
+
+[data-bs-theme="dark"] .text-dark {
+    color: #e8e8e8 !important;
+}
+
+[data-bs-theme="dark"] .img-thumbnail {
+    background-color: #2a2a2a;
+    border-color: #444;
+}
+
+[data-bs-theme="dark"] .btn-light {
+    background-color: #333;
+    border-color: #444;
+    color: #e8e8e8;
+}
+
+/* smooth card transitions */
+.card, .navbar, .list-group-item, .form-control, .form-select {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+
+a {
+    color: #087f8c;
+}
+
+    a:hover {
+        color: #05636d;
+    }
+
+.navbar {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e5e5e5 !important;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.navbar-brand {
+    font-size: 25px;
+    font-weight: 700;
+    color: #087f8c !important;
+}
+
+.navbar-nav .nav-link {
+    color: #333 !important;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+    .navbar-nav .nav-link:hover {
+        color: #087f8c !important;
+    }
+
+.navbar-toggler {
+    border-color: #ddd;
+}
+
+.btn-primary {
+    background-color: #087f8c;
+    border-color: #087f8c;
+}
+
+    .btn-primary:hover {
+        background-color: #066c77;
+        border-color: #066c77;
+    }
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.form-control,
+.form-select {
+    border: 1px solid #d5d5d5;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #087f8c;
+        box-shadow: 0 0 0 0.15rem rgba(8, 127, 140, 0.15);
+    }
+
+.form-label {
+    font-weight: 500;
+}
+
+.card {
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+}
+
+.card-body {
+    background-color: #fff;
+}
+
+.card h2 {
+    color: #222;
+}
+
+.flood-hero {
+    padding: 70px 0;
+    background-color: #f7fbfc;
+    border-bottom: 1px solid #e8eeee;
+}
+
+.hero-badge {
+    display: inline-block;
+    padding: 7px 12px;
+    margin-bottom: 15px;
+    background-color: #e8f5f7;
+    color: #087f8c;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.hero-title {
+    font-size: 45px;
+    line-height: 1.15;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 20px;
+}
+
+    .hero-title span {
+        color: #087f8c;
+    }
+
+.hero-text {
+    max-width: 650px;
+    font-size: 18px;
+    line-height: 1.7;
+    color: #555;
+}
+
+.hero-buttons {
+    margin-top: 25px;
+}
+
+.hero-primary-btn {
+    background-color: #087f8c;
+    color: white;
+    border: 1px solid #087f8c;
+    padding: 10px 22px;
+    margin-right: 8px;
+}
+
+    .hero-primary-btn:hover {
+        background-color: #066c77;
+        color: white;
+    }
+
+.hero-secondary-btn {
+    background-color: white;
+    color: #087f8c;
+    border: 1px solid #087f8c;
+    padding: 10px 22px;
+}
+
+    .hero-secondary-btn:hover {
+        background-color: #087f8c;
+        color: white;
+    }
+
+.hero-card {
+    background-color: white;
+    border: 1px solid #e0e5e6;
+    border-radius: 10px;
+    padding: 35px;
+    text-align: center;
+}
+
+.hero-card-icon {
+    font-size: 45px;
+    margin-bottom: 15px;
+}
+
+.hero-card h3 {
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+.hero-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.hero-mini-items {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+    .hero-mini-items div {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .hero-mini-items span {
+        font-size: 22px;
+    }
+
+    .hero-mini-items strong {
+        font-size: 13px;
+    }
+
+.how-section,
+.users-section {
+    padding: 65px 0;
+}
+
+.users-section {
+    background-color: #f8f9fa;
+}
+
+.section-heading {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.section-label {
+    color: #087f8c;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.section-heading h2 {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.section-heading p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.process-card,
+.user-card {
+    height: 100%;
+    padding: 30px;
+    background-color: white;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+}
+
+.process-card {
+    position: relative;
+}
+
+.process-number {
+    color: #087f8c;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.process-icon,
+.user-icon {
+    font-size: 35px;
+    margin-bottom: 15px;
+}
+
+.process-card h4,
+.user-card h4 {
+    margin-bottom: 10px;
+    font-size: 21px;
+}
+
+.process-card p,
+.user-card p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+.cta-section {
+    padding: 55px 0;
+}
+
+.cta-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    padding: 35px;
+    background-color: #eaf6f8;
+    border: 1px solid #d7ecef;
+    border-radius: 8px;
+}
+
+    .cta-box h2 {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .cta-box p {
+        color: #555;
+        margin-bottom: 0;
+    }
+
+.cta-btn {
+    background-color: #087f8c;
+    color: white;
+    border: 1px solid #087f8c;
+    padding: 10px 22px;
+    white-space: nowrap;
+}
+
+    .cta-btn:hover {
+        background-color: #066c77;
+        color: white;
+    }
+
+.footer {
+    position: relative;
+    width: 100%;
+    padding: 18px 0;
+    background-color: #ffffff;
+    border-top: 1px solid #e5e5e5 !important;
+    color: #666;
+}
+
+    .footer a {
+        color: #087f8c;
+        text-decoration: none;
+    }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+
+

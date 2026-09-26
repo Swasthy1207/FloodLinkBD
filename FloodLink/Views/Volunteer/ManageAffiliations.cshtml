@@ -1,0 +1,141 @@
+@model IEnumerable<FloodLink.Models.VolunteerProfile>
+
+@{
+    ViewData["Title"] = "Manage Volunteers";
+    var approvedVolunteers = ViewBag.ApprovedVolunteers as List<FloodLink.Models.VolunteerProfile> ?? new List<FloodLink.Models.VolunteerProfile>();
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Manage Volunteers</h3>
+            <p class="text-muted mb-0 small">Approve or reject volunteers requesting to join your organization.</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="row">
+        <!-- Pending Approvals -->
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm border-warning">
+                <div class="card-header bg-warning text-dark fw-semibold">
+                    Pending Join Requests (@Model.Count())
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.Any())
+                    {
+                        <div class="p-4 text-center text-muted">
+                            No pending volunteer requests.
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Volunteer Name</th>
+                                    <th>Email</th>
+                                    <th>Skills</th>
+                                    <th>Location</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var v in Model)
+                                {
+                                    <tr>
+                                        <td class="align-middle fw-semibold">@v.User?.FullName</td>
+                                        <td class="align-middle">@v.User?.Email</td>
+                                        <td class="align-middle">@v.Skills</td>
+                                        <td class="align-middle">@v.CurrentLocation</td>
+                                        <td class="text-end align-middle">
+                                            <form asp-controller="Volunteer" asp-action="ApproveAffiliation" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="profileId" value="@v.Id" />
+                                                <button type="submit" name="action" value="Approve" class="btn btn-sm btn-success">Approve</button>
+                                                <button type="submit" name="action" value="Reject" class="btn btn-sm btn-outline-danger">Reject</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Approved Volunteers -->
+        <div class="col-md-12">
+            <div class="card shadow-sm border-success">
+                <div class="card-header bg-success text-white fw-semibold">
+                    Approved Organization Volunteers (@approvedVolunteers.Count)
+                </div>
+                <div class="card-body p-0">
+                    @if (!approvedVolunteers.Any())
+                    {
+                        <div class="p-4 text-center text-muted">
+                            Your organization currently has no approved volunteers.
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Volunteer Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Skills</th>
+                                    <th>Location</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var v in approvedVolunteers)
+                                {
+                                    <tr>
+                                        <td class="align-middle fw-semibold">@v.User?.FullName</td>
+                                        <td class="align-middle">@v.User?.Email</td>
+                                        <td class="align-middle">
+                                            @if (v.AvailabilityStatus == "Available")
+                                            {
+                                                <span class="badge bg-success">Available</span>
+                                            }
+                                            else if (v.AvailabilityStatus == "Busy")
+                                            {
+                                                <span class="badge bg-warning text-dark">Busy</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            }
+                                        </td>
+                                        <td class="align-middle">@v.Skills</td>
+                                        <td class="align-middle">@v.CurrentLocation</td>
+                                        <td class="text-end align-middle">
+                                            <form asp-controller="Volunteer" asp-action="ApproveAffiliation" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="profileId" value="@v.Id" />
+                                                <!-- Action="Reject" is basically 'remove' -->
+                                                <button type="submit" name="action" value="Reject" class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove this volunteer from your organization?');">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

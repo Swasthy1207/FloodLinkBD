@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Volunteer Dashboard";
+
+    var fullName = User.FindFirst("FullName")?.Value;
+    var email = User.Identity?.Name;
+}
+
+<div class="container py-5">
+
+    <div class="mb-4">
+        <h2>Volunteer Dashboard</h2>
+        <p class="text-muted">
+            Welcome, @fullName.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+
+                <div class="card-body">
+
+                    <h4>Available Requests</h4>
+
+                    <p class="text-muted">
+                        View help requests that need assistance.
+                    </p>
+
+                    <a asp-controller="HelpRequest"
+                       asp-action="AvailableRequests"
+                       class="btn btn-primary">
+                        View Requests
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+
+                <div class="card-body">
+
+                    <h4>My Assignments</h4>
+
+                    <p class="text-muted">
+                        View requests assigned to you.
+                    </p>
+                    <a asp-controller="HelpRequest"
+                       asp-action="MyAssignments"
+                       class="btn btn-primary">
+                        My Assignments
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>

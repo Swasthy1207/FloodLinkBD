@@ -1,0 +1,77 @@
+@model FloodLink.Models.VolunteerProfile
+
+@{
+    ViewData["Title"] = "Volunteer Profile";
+    var organizations = ViewBag.Organizations as List<FloodLink.Models.Organization> ?? new List<FloodLink.Models.Organization>();
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h3 class="mb-3">My Volunteer Profile</h3>
+            <p class="text-muted mb-4">Update your skills, availability, and organization affiliation.</p>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+            }
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-controller="Volunteer" asp-action="MyProfile" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label asp-for="Skills" class="form-label fw-semibold">Skills / Capabilities</label>
+                            <input asp-for="Skills" class="form-control" placeholder="e.g., Medical, Rescue, Boat Driver, Logistics" />
+                            <div class="form-text">Comma-separated list of your primary skills.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CurrentLocation" class="form-label fw-semibold">Current Location</label>
+                            <input asp-for="CurrentLocation" class="form-control" placeholder="e.g., Dhaka, Gulshan" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AvailabilityStatus" class="form-label fw-semibold">Availability Status</label>
+                            <select asp-for="AvailabilityStatus" class="form-select">
+                                <option value="Available">Available for assignment</option>
+                                <option value="Busy">Currently busy</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="OrganizationId" class="form-label fw-semibold">Affiliated Organization (Optional)</label>
+                            <select asp-for="OrganizationId" class="form-select">
+                                <option value="">-- Independent Volunteer --</option>
+                                @foreach (var org in organizations)
+                                {
+                                    <option value="@org.Id">@org.OrganizationName</option>
+                                }
+                            </select>
+                            <div class="form-text">If you select an organization, your affiliation must be approved by their admin.</div>
+                        </div>
+
+                        @if (Model.OrganizationId.HasValue)
+                        {
+                            <div class="mb-3 p-3 bg-light rounded border">
+                                <strong>Affiliation Status:</strong> 
+                                @if (Model.IsApprovedByOrg)
+                                {
+                                    <span class="text-success"><i class="bi bi-check-circle"></i> Approved</span>
+                                }
+                                else
+                                {
+                                    <span class="text-warning"><i class="bi bi-hourglass-split"></i> Pending Approval</span>
+                                }
+                            </div>
+                        }
+
+                        <button type="submit" class="btn btn-primary">Save Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

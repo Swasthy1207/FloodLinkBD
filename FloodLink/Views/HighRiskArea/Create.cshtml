@@ -1,0 +1,90 @@
+@model FloodLink.Models.HighRiskArea
+
+@{
+    ViewData["Title"] = "Add High-Risk Flood Area";
+    var riskLevels = ViewBag.RiskLevels as string[] ?? Array.Empty<string>();
+    var accessibilities = ViewBag.Accessibilities as string[] ?? Array.Empty<string>();
+    var orgs = ViewBag.Organizations as List<FloodLink.Models.Organization> ?? new List<FloodLink.Models.Organization>();
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i> Identify High-Risk Area</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="AreaName" class="form-label fw-bold"></label>
+                            <input asp-for="AreaName" class="form-control" placeholder="e.g. Char Fasson Island Village, Tahirpur Lowland Union" />
+                            <span asp-validation-for="AreaName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="DistrictOrUpazila" class="form-label fw-bold">District / Upazila</label>
+                                <input asp-for="DistrictOrUpazila" class="form-control" placeholder="e.g. Sunamganj, Tahirpur" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="UnionOrWard" class="form-label fw-bold">Union / Ward</label>
+                                <input asp-for="UnionOrWard" class="form-control" placeholder="e.g. Dakshin Sreepur Union" />
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="RiskLevel" class="form-label fw-bold"></label>
+                                <select asp-for="RiskLevel" class="form-select">
+                                    <option value="High" selected>High Risk</option>
+                                    <option value="Medium">Medium Risk</option>
+                                    <option value="Low">Low Risk</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Accessibility" class="form-label fw-bold"></label>
+                                <select asp-for="Accessibility" class="form-select">
+                                    <option value="Boat Required" selected>🚤 Boat Required</option>
+                                    <option value="Road Inaccessible">🚫 Road Inaccessible</option>
+                                    <option value="Very Difficult">⚠️ Very Difficult</option>
+                                    <option value="Difficult">🧗 Difficult</option>
+                                    <option value="Easily Accessible">✅ Easily Accessible</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="PopulationEstimate" class="form-label fw-bold">Population Est.</label>
+                                <input asp-for="PopulationEstimate" type="number" min="0" class="form-control" />
+                                <span asp-validation-for="PopulationEstimate" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="OrganizationId" class="form-label fw-bold">Managing Organization</label>
+                            <select asp-for="OrganizationId" class="form-select">
+                                <option value="">-- Multi-Organization Public Record --</option>
+                                @foreach (var o in orgs)
+                                {
+                                    <option value="@o.Id">@o.OrganizationName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="TerrainAndHazardNotes" class="form-label fw-bold">Terrain, Water Level & Special Hazards</label>
+                            <textarea asp-for="TerrainAndHazardNotes" rows="4" class="form-control" placeholder="Submerged roads, fast river current, boat landing spots, electricity status, or nearest embankment..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger px-4"><i class="bi bi-save me-1"></i> Save High-Risk Area</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

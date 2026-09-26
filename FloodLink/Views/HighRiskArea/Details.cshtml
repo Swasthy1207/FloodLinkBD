@@ -1,0 +1,144 @@
+@model FloodLink.Models.HighRiskArea
+
+@{
+    ViewData["Title"] = Model.AreaName;
+    bool canManage = User.IsInRole("Super Admin") || User.IsInRole("Admin") || User.IsInRole("Coordinator") || User.IsInRole("Organization Admin") || User.IsInRole("Organization");
+
+    string RiskBadge(string r) => r switch
+    {
+        "High" => "bg-danger text-white",
+        "Medium" => "bg-warning text-dark",
+        "Low" => "bg-info text-dark",
+        _ => "bg-secondary text-white"
+    };
+
+    string AccessBadge(string a) => a switch
+    {
+        "Boat Required" => "bg-primary text-white",
+        "Road Inaccessible" => "bg-danger text-white",
+        "Very Difficult" => "bg-warning text-dark",
+        "Difficult" => "bg-secondary text-white",
+        "Easily Accessible" => "bg-success text-white",
+        _ => "bg-light text-dark border"
+    };
+
+    string AccessIcon(string a) => a switch
+    {
+        "Boat Required" => "bi-water",
+        "Road Inaccessible" => "bi-slash-circle-fill",
+        "Very Difficult" => "bi-exclamation-triangle-fill",
+        "Difficult" => "bi-signpost-split",
+        "Easily Accessible" => "bi-check-circle-fill",
+        _ => "bi-geo-alt"
+    };
+}
+
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">High-Risk Areas</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.AreaName</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge @RiskBadge(Model.RiskLevel) me-1">@Model.RiskLevel Risk Area</span>
+                        <span class="badge @AccessBadge(Model.Accessibility) me-1"><i class="bi @AccessIcon(Model.Accessibility) me-1"></i> @Model.Accessibility</span>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-danger">Active Danger</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Safe / Cleared</span>
+                        }
+                    </div>
+                    @if (canManage)
+                    {
+                        <div class="btn-group btn-group-sm">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this high-risk area?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+                <div class="card-body p-4">
+                    <h2 class="fw-bold mb-3"><i class="bi bi-geo-alt-fill text-danger me-1"></i> @Model.AreaName</h2>
+
+                    <div class="row g-3 mb-4 pb-3 border-bottom text-muted small">
+                        <div class="col-sm-6 col-md-3">
+                            <span class="text-uppercase fw-semibold d-block text-secondary">District / Upazila</span>
+                            <span class="fw-bold text-dark fs-6">@(Model.DistrictOrUpazila ?? "General Region")</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="text-uppercase fw-semibold d-block text-secondary">Union / Ward</span>
+                            <span class="fw-bold text-dark fs-6">@(Model.UnionOrWard ?? "N/A")</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="text-uppercase fw-semibold d-block text-secondary">Estimated Population</span>
+                            <span class="fw-bold text-dark fs-6 text-primary"><i class="bi bi-people me-1"></i> @Model.PopulationEstimate.ToString("N0")</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="text-uppercase fw-semibold d-block text-secondary">Reporting Org</span>
+                            <span class="fw-bold text-dark">@(Model.Organization?.OrganizationName ?? "Central Pool")</span>
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted text-uppercase small fw-semibold mb-2">Relief Access & Hazard Profile</h6>
+                    @if (!string.IsNullOrEmpty(Model.TerrainAndHazardNotes))
+                    {
+                        <div class="bg-light p-3 rounded mb-4" style="white-space: pre-line; line-height: 1.8;">
+                            @Model.TerrainAndHazardNotes
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted italic mb-4">No terrain hazard notes recorded.</p>
+                    }
+
+                    <!-- Operations Planning Guidance -->
+                    <div class="alert alert-info border-info d-flex align-items-start gap-2">
+                        <i class="bi bi-lightbulb-fill fs-5 text-primary"></i>
+                        <div>
+                            <h6 class="alert-heading fw-bold mb-1">Coordination & Logistics Notice</h6>
+                            <p class="mb-0 small">
+                                When planning relief missions or dispatching rescue teams to <strong>@Model.AreaName</strong>, note that access condition is <strong>@Model.Accessibility</strong>.
+                                @if (Model.Accessibility == "Boat Required")
+                                {
+                                    <span>Engineered rescue boats and life jackets are mandatory before deployment. Check Equipment fleet.</span>
+                                }
+                                else if (Model.Accessibility == "Road Inaccessible")
+                                {
+                                    <span>High ground paths or boat routes should be identified prior to mission departure.</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-4">
+                        <small class="text-muted">Recorded: @Model.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</small>
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">&larr; Back to High-Risk Areas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

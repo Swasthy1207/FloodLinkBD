@@ -1,0 +1,156 @@
+@model FloodLink.Models.Organization
+
+@{
+    ViewData["Title"] = Model.OrganizationName;
+    bool isSuperAdmin = (bool)(ViewBag.IsSuperAdmin ?? false);
+    bool isOwner      = (bool)(ViewBag.IsOwner ?? false);
+
+    string statusBadge = Model.Status switch
+    {
+        "Approved" => "bg-success",
+        "Rejected" => "bg-danger",
+        _          => "bg-warning text-dark"
+    };
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
+
+            <div class="mb-3">
+                <a asp-action="Index" class="text-decoration-none small text-muted">&larr; Back to Organizations</a>
+            </div>
+
+            <!-- Header Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                            <h2 class="mb-1">@Model.OrganizationName</h2>
+                            <span class="badge bg-light text-dark border me-2">@Model.OrganizationType</span>
+                            <span class="badge @statusBadge">@Model.Status</span>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            @if (isSuperAdmin || isOwner)
+                            {
+                                <a asp-action="Edit" asp-route-id="@Model.Id"
+                                   class="btn btn-outline-primary btn-sm">Edit</a>
+                            }
+
+                            @if (isSuperAdmin && Model.Status == "Pending")
+                            {
+                                <form asp-action="Approve" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success btn-sm"
+                                            onclick="return confirm('Approve this organization?')">
+                                        Approve
+                                    </button>
+                                </form>
+                                <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Reject this organization?')">
+                                        Reject
+                                    </button>
+                                </form>
+                            }
+
+                            @if (isSuperAdmin && Model.Status == "Approved")
+                            {
+                                <form asp-action="Reject" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                                            onclick="return confirm('Revoke approval and reject this organization?')">
+                                        Reject
+                                    </button>
+                                </form>
+                            }
+
+                            @if (isSuperAdmin && Model.Status != "Approved")
+                            {
+                                <a asp-action="Delete" asp-route-id="@Model.Id"
+                                   class="btn btn-outline-danger btn-sm">Delete</a>
+                            }
+                        </div>
+                    </div>
+
+                    <p class="text-muted mt-3 mb-0">@Model.Description</p>
+
+                </div>
+            </div>
+
+            <!-- Info Cards Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-muted text-uppercase small mb-3">Contact Information</h6>
+                            <table class="table table-borderless table-sm mb-0">
+                                <tr>
+                                    <td class="text-muted pe-2 small" style="width:110px">Email</td>
+                                    <td class="small">@Model.ContactEmail</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted pe-2 small">Phone</td>
+                                    <td class="small">@Model.ContactPhone</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted pe-2 small">Address</td>
+                                    <td class="small">@Model.Address</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-muted text-uppercase small mb-3">Service Area</h6>
+                            <p class="mb-0 small">@Model.ServiceArea</p>
+                            <hr class="my-2" />
+                            <div class="text-muted small">
+                                Registered: @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt")
+                            </div>
+                            @if (isSuperAdmin && Model.ManagedByUser != null)
+                            {
+                                <div class="text-muted small mt-1">
+                                    Managed by: <strong>@Model.ManagedByUser.FullName</strong>
+                                    (@Model.ManagedByUser.Email)
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Module Summary (placeholder for future sections) -->
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fs-2 fw-bold text-primary mb-1">0</div>
+                        <div class="text-muted small">Volunteers</div>
+                        <div class="text-muted" style="font-size:11px;"></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fs-2 fw-bold text-warning mb-1">0</div>
+                        <div class="text-muted small">Resources</div>
+                        <div class="text-muted" style="font-size:11px;"></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm text-center p-3">
+                        <div class="fs-2 fw-bold text-success mb-1">0</div>
+                        <div class="text-muted small">Shelters</div>
+                        <div class="text-muted" style="font-size:11px;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

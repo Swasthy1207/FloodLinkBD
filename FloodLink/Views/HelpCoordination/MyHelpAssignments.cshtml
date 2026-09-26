@@ -1,0 +1,216 @@
+﻿@model IEnumerable<FloodLink.Models.OrganizationHelpOfferAssignment>
+
+@{
+    ViewData["Title"] = "My Help Assignments";
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-clipboard-check me-2"></i>
+            My Help Assignments
+        </h2>
+
+        <p class="text-muted">
+            Organization-to-organization relief assignments given to you.
+        </p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            You currently have no organization help assignments.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var assignment in Model)
+            {
+                var offer = assignment.HelpOffer;
+                var need = offer?.HelpNeed;
+
+                <div class="col-md-6">
+
+                    <div class="card shadow-sm h-100">
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start">
+
+                                <div>
+                                    <h5 class="fw-bold mb-1">
+                                        @need?.Title
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        Requesting Organization:
+                                        <strong>
+                                            @need?.Organization?.OrganizationName
+                                        </strong>
+                                    </small>
+                                </div>
+
+                                @if (assignment.Status == "Assigned")
+                                {
+                                    <span class="badge bg-primary">
+                                        Assigned
+                                    </span>
+                                }
+                                else if (assignment.Status == "In Progress")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        In Progress
+                                    </span>
+                                }
+                                else if (assignment.Status == "Completed")
+                                {
+                                    <span class="badge bg-success">
+                                        Completed
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        @assignment.Status
+                                    </span>
+                                }
+
+                            </div>
+
+                            <hr />
+
+                            <p class="mb-2">
+                                <strong>Help Type:</strong>
+                                @offer?.OfferedHelpType
+                            </p>
+
+                            @if (!string.IsNullOrWhiteSpace(offer?.OfferedQuantity))
+                            {
+                                <p class="mb-2">
+                                    <strong>Quantity:</strong>
+                                    @offer.OfferedQuantity
+                                </p>
+                            }
+
+                            <p class="mb-2">
+                                <strong>Location:</strong>
+                                @need?.Location
+                            </p>
+
+                            @if (need?.NeededBy != null)
+                            {
+                                <p class="mb-2">
+                                    <strong>Needed By:</strong>
+                                    @need.NeededBy.Value.ToLocalTime()
+                                </p>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(assignment.Notes))
+                            {
+                                <div class="alert alert-light border mt-3">
+                                    <strong>Assignment Note:</strong>
+                                    <br />
+                                    @assignment.Notes
+                                </div>
+                            }
+
+                            <small class="text-muted d-block mb-3">
+                                Assigned:
+                                @assignment.AssignedAt.ToLocalTime()
+                                .ToString("dd MMM yyyy HH:mm")
+                            </small>
+
+                            @if (assignment.Status != "Completed" &&
+                                 assignment.Status != "Cancelled")
+                            {
+                                <form asp-action="UpdateHelpAssignmentStatus"
+                                      method="post">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@assignment.Id" />
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Progress Note
+                                        </label>
+
+                                        <textarea name="note"
+                                                  class="form-control"
+                                                  rows="2"
+                                                  placeholder="Optional update..."></textarea>
+
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+
+                                        @if (assignment.Status == "Assigned")
+                                        {
+                                            <button type="submit"
+                                                    name="status"
+                                                    value="In Progress"
+                                                    class="btn btn-warning">
+
+                                                <i class="bi bi-play-circle me-1"></i>
+                                                Start
+
+                                            </button>
+                                        }
+
+                                        @if (assignment.Status == "In Progress")
+                                        {
+                                            <button type="submit"
+                                                    name="status"
+                                                    value="Completed"
+                                                    class="btn btn-success">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+                                                Complete
+
+                                            </button>
+                                        }
+
+                                    </div>
+
+                                </form>
+                            }
+                            else if (assignment.Status == "Completed")
+                            {
+                                <div class="alert alert-success mb-0">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    This assignment has been completed.
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

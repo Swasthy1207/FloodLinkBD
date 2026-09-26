@@ -1,0 +1,206 @@
+@model FloodLink.Models.UserDetailsViewModel
+
+@{
+    ViewData["Title"] = $"User Details - {Model.FullName}";
+
+    string RoleBadge(string role) => role switch
+    {
+        "Super Admin" or "Admin" => "bg-danger",
+        "Organization Admin" or "Organization" => "bg-primary",
+        "Coordinator" => "bg-info text-dark",
+        "Volunteer" => "bg-success",
+        "Community Reporter" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="container py-4 mb-5">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Account" asp-action="Users">Users & Roles</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.FullName</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Header Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                         style="width: 64px; height: 64px; font-size: 26px; font-weight: bold;">
+                        @(string.IsNullOrEmpty(Model.FullName) ? "U" : Model.FullName.Substring(0, 1).ToUpper())
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-1">@Model.FullName</h3>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="text-muted"><i class="bi bi-envelope me-1"></i>@Model.Email</span>
+                            @if (Model.EmailConfirmed)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Email Verified
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                                    <i class="bi bi-clock-history me-1"></i>Unverified Email
+                                </span>
+                            }
+                            @if (Model.Status == "Active")
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@Model.Status</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a asp-action="EditUser" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">
+                        <i class="bi bi-pencil-square me-1"></i> Edit User & Roles
+                    </a>
+                    <form asp-action="ToggleUserStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                class="btn @(Model.Status == "Active" ? "btn-outline-warning" : "btn-outline-success") btn-sm"
+                                onclick="return confirm('Toggle status for this user?')">
+                            <i class="bi @(Model.Status == "Active" ? "bi-slash-circle" : "bi-check-circle") me-1"></i>
+                            @(Model.Status == "Active" ? "Deactivate User" : "Activate User")
+                        </button>
+                    </form>
+                    <a asp-action="Users" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="row g-4">
+        <!-- User Profile Details -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-person-vcard text-primary me-2"></i> Account Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted small text-uppercase">Full Name</dt>
+                        <dd class="col-sm-8 fw-semibold">@Model.FullName</dd>
+
+                        <dt class="col-sm-4 text-muted small text-uppercase">Username</dt>
+                        <dd class="col-sm-8">@Model.UserName</dd>
+
+                        <dt class="col-sm-4 text-muted small text-uppercase">Email</dt>
+                        <dd class="col-sm-8">@Model.Email</dd>
+
+                        <dt class="col-sm-4 text-muted small text-uppercase">Phone</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</dd>
+
+                        <dt class="col-sm-4 text-muted small text-uppercase">Registered</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToLocalTime().ToString("f")</dd>
+
+                        <dt class="col-sm-4 text-muted small text-uppercase">Last OTP Sent</dt>
+                        <dd class="col-sm-8">@(Model.LastOtpSentAt.HasValue ? Model.LastOtpSentAt.Value.ToLocalTime().ToString("f") : "None recorded")</dd>
+
+                        <dt class="col-sm-4 text-muted small text-uppercase">Account ID</dt>
+                        <dd class="col-sm-8 text-break small font-monospace">@Model.Id</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Roles & Associated Entities -->
+        <div class="col-lg-6">
+            <div class="d-flex flex-column gap-4 h-100">
+                <!-- Roles Card -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-shield-lock text-primary me-2"></i> Assigned System Roles</h5>
+                        <a asp-action="EditUser" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">
+                            Manage Roles
+                        </a>
+                    </div>
+                    <div class="card-body p-4">
+                        @if (Model.Roles.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var r in Model.Roles)
+                                {
+                                    <span class="badge @RoleBadge(r) fs-6 px-3 py-2">
+                                        <i class="bi bi-check-circle me-1"></i>@r
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">No specific roles assigned. User operates with standard Citizen permissions.</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Related System Records Card -->
+                <div class="card border-0 shadow-sm flex-grow-1">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-link-45deg text-primary me-2"></i> Associated FloodLink Records</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <div class="fw-semibold">Managed Organization</div>
+                                    <small class="text-muted">Relief NGO or agency administrative ownership</small>
+                                </div>
+                                @if (Model.OrganizationId.HasValue)
+                                {
+                                    <a asp-controller="Organization" asp-action="Details" asp-route-id="@Model.OrganizationId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        @Model.OrganizationName &rarr;
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">None</span>
+                                }
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <div class="fw-semibold">Help Requests Submitted</div>
+                                    <small class="text-muted">Disaster relief or emergency assistance submissions</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill px-3 py-2 fs-6">
+                                    @Model.HelpRequestsCount
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

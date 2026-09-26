@@ -1,0 +1,87 @@
+﻿@{
+    ViewData["Title"] = "Citizen Dashboard";
+    var fullName = User.FindFirst("FullName")?.Value;
+    var email = User.Identity?.Name;
+}
+<div class="container py-5">
+
+    <div class="mb-4">
+        <h2>Citizen Dashboard</h2>
+        <p class="text-muted">
+            Welcome, @fullName.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+
+                <div class="card-body">
+
+                    <h4>Request Help</h4>
+
+                    <p class="text-muted">
+                        Submit a request when you need emergency assistance.
+                    </p>
+
+                    <a asp-controller="HelpRequest"
+                       asp-action="Create"
+                       class="btn btn-primary">
+                        Request Help
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+
+                <div class="card-body">
+
+                    <h4>My Requests</h4>
+
+                    <p class="text-muted">
+                        View the help requests you have submitted.
+                    </p>
+
+                    <a asp-controller="HelpRequest"
+                       asp-action="MyRequests"
+                       class="btn btn-outline-primary">
+                        View Requests
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm p-3">
+
+                <div class="card-body">
+
+                    <h4>Track Requests</h4>
+
+                    <p class="text-muted">
+                        Track the current status and progress of your submitted requests.
+                    </p>
+
+                    <a asp-controller="HelpRequest"
+                       asp-action="TrackRequests"
+                       class="btn btn-outline-primary">
+                        Track Requests
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>

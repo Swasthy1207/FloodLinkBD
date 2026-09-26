@@ -1,0 +1,84 @@
+@model FloodLink.Models.VerifyEmailViewModel
+
+@{
+    ViewData["Title"] = "Verify Email";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <h2 class="text-center mb-2">Verify Your Email</h2>
+                    <p class="text-center text-muted small mb-4">
+                        We sent a 6-digit verification code to<br />
+                        <strong>@Model.Email</strong>
+                    </p>
+
+                    @if (!string.IsNullOrEmpty(Model.DevHelperCode))
+                    {
+                        <div class="alert alert-info border-0 shadow-sm py-2 px-3 mb-3">
+                            <div class="fw-bold small text-uppercase mb-1">&#9432; Development Mode Helper</div>
+                            <div class="small">
+                                For academic evaluation testing, your OTP code is:
+                                <strong class="fs-5 text-primary ms-1">@Model.DevHelperCode</strong>
+                            </div>
+                        </div>
+                    }
+
+                    <form asp-action="VerifyEmail" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <input type="hidden" asp-for="Email" />
+
+                        <div class="mb-3">
+                            <label asp-for="VerificationCode" class="form-label"></label>
+                            <input asp-for="VerificationCode"
+                                   class="form-control text-center fs-4 fw-bold letter-spacing-2"
+                                   maxlength="6"
+                                   placeholder="123456"
+                                   autocomplete="off"
+                                   autofocus />
+                            <span asp-validation-for="VerificationCode" class="text-danger"></span>
+                            <div class="form-text text-muted small">
+                                Code expires in 15 minutes.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                            Verify & Activate Account
+                        </button>
+                    </form>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Didn't receive the code?</span>
+                        <form asp-action="ResendVerificationCode" method="post" class="d-inline">
+                            <input type="hidden" name="email" value="@Model.Email" />
+                            <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0">
+                                Resend Code
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a asp-action="Login" class="text-decoration-none small text-muted">
+                            &larr; Back to Login
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

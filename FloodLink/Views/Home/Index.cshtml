@@ -1,0 +1,303 @@
+@using FloodLink.Models
+@{
+    ViewData["Title"] = "FloodLinkBD — Bangladesh Flood Disaster Coordination & Relief Accountability";
+    var recentAnnouncements = ViewBag.RecentAnnouncements as List<Announcement> ?? new();
+    var recentOperations = ViewBag.RecentOperations as List<DisasterOperation> ?? new();
+    var approvedOrgs = ViewBag.ApprovedOrgsCount as int? ?? 0;
+    var activeOps = ViewBag.ActiveOperationsCount as int? ?? 0;
+    var totalRequests = ViewBag.TotalHelpRequestsCount as int? ?? 0;
+    var sheltersCount = ViewBag.SheltersCount as int? ?? 0;
+}
+
+<!-- ── EMERGENCY ANNOUNCEMENT BANNER (IF ANY) ── -->
+@if (recentAnnouncements.Any())
+{
+    var latestAlert = recentAnnouncements.First();
+    <div class="alert alert-warning border-start border-4 border-warning shadow-sm rounded-3 py-3 px-4 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-danger text-uppercase px-2 py-1"><i class="bi bi-broadcast me-1"></i> Alert</span>
+            <div>
+                <strong class="text-dark">@latestAlert.Title</strong>
+                <span class="text-muted d-none d-md-inline ms-2">— @(latestAlert.Content.Length > 110 ? latestAlert.Content.Substring(0, 110) + "..." : latestAlert.Content)</span>
+            </div>
+        </div>
+        <a asp-controller="Announcement" asp-action="Index" class="btn btn-sm btn-outline-dark fw-semibold">
+            View All Alerts <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+}
+
+<!-- ── HERO SECTION ── -->
+<section class="py-4 py-lg-5 mb-5 rounded-4 bg-light border shadow-sm px-4 px-md-5 position-relative overflow-hidden">
+    <div class="row align-items-center g-5">
+        <div class="col-lg-7">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 rounded-pill bg-white border shadow-sm">
+                <span class="fl-logo-badge">
+                    <svg width="18" height="18" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="14" cy="14" r="14" fill="#006A4E"/>
+                        <circle cx="14" cy="14" r="6" fill="#F42A41"/>
+                    </svg>
+                </span>
+                <span class="small fw-semibold text-dark">Bangladesh Flood Relief &amp; Accountability Network</span>
+            </div>
+
+            <h1 class="display-5 fw-bold lh-sm mb-3">
+                Rapid Response. Coordinated Aid. <br class="d-none d-md-inline"/>
+                <span class="text-fl-green">Total Public Accountability.</span>
+            </h1>
+
+            <p class="lead text-muted mb-4 fs-6">
+                FloodLinkBD connects flood-affected communities directly with verified NGOs, 
+                Bangladesh Red Crescent, university volunteer corps, and emergency shelters. 
+                Every relief operation is logged publicly to eradicate duplicate aid and ensure transparency.
+            </p>
+
+            <div class="d-flex flex-wrap gap-2 pt-1">
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-fl-green btn-lg px-4 shadow-sm fw-semibold">
+                        <i class="bi bi-speedometer2 me-2"></i>My Dashboard
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="HelpRequest" asp-action="Create" class="btn btn-fl-red btn-lg px-4 shadow-sm fw-semibold">
+                        <i class="bi bi-life-preserver me-2"></i>Request Emergency Help
+                    </a>
+                }
+
+                <a asp-controller="Organization" asp-action="PublicActivities" class="btn btn-outline-success btn-lg px-4 shadow-sm fw-semibold">
+                    <i class="bi bi-activity me-2"></i>Public Activities
+                </a>
+
+                <a asp-controller="Shelter" asp-action="Index" class="btn btn-light border btn-lg px-4 shadow-sm fw-semibold">
+                    <i class="bi bi-building-check me-2"></i>Find Shelters
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+                <div class="card-header bg-fl-green text-white py-3 px-4 d-flex align-items-center justify-content-between">
+                    <span class="fw-bold"><i class="bi bi-shield-check me-2"></i>Live Accountability Registry</span>
+                    <span class="badge bg-white text-fl-green fw-bold">Active</span>
+                </div>
+                <div class="card-body p-4">
+                    <p class="small text-muted mb-3">
+                        Real-time summary of verified multi-agency relief operations active on the ground:
+                    </p>
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="p-3 rounded-3 bg-light border">
+                                <h3 class="fw-bold text-fl-green mb-0">@(approvedOrgs > 0 ? approvedOrgs : "—")</h3>
+                                <div class="text-secondary small fw-medium">Verified Orgs</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded-3 bg-light border">
+                                <h3 class="fw-bold text-primary mb-0">@(activeOps > 0 ? activeOps : "—")</h3>
+                                <div class="text-secondary small fw-medium">Relief Ops</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded-3 bg-light border">
+                                <h3 class="fw-bold text-fl-red mb-0">@(totalRequests > 0 ? totalRequests : "—")</h3>
+                                <div class="text-secondary small fw-medium">Citizen Requests</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded-3 bg-light border">
+                                <h3 class="fw-bold text-warning-emphasis mb-0">@(sheltersCount > 0 ? sheltersCount : "—")</h3>
+                                <div class="text-secondary small fw-medium">Open Shelters</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-2 border-top">
+                        <a asp-controller="Organization" asp-action="PublicActivities" class="btn btn-light border w-100 fw-semibold text-center">
+                            Inspect All Relief Records <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── THREE CORE PILLARS ── -->
+<section class="mb-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">How FloodLinkBD Works</h2>
+        <p class="text-muted mx-auto" style="max-width: 650px;">
+            A centralized emergency system designed specifically for Bangladesh to connect citizens, 
+            aid agencies, and volunteers with full public transparency.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center">
+                <div class="rounded-circle bg-success-subtle text-fl-green d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-eye-fill fs-3"></i>
+                </div>
+                <h4 class="fw-bold h5">Public Accountability</h4>
+                <p class="text-muted small">
+                    Every relief distribution, operation area, and partner organization is recorded publicly. Citizens and media can verify where aid goes without any hidden operations.
+                </p>
+                <div class="mt-auto pt-3">
+                    <a asp-controller="Organization" asp-action="PublicActivities" class="btn btn-sm btn-outline-success">
+                        Browse Operations &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center">
+                <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-diagram-3-fill fs-3"></i>
+                </div>
+                <h4 class="fw-bold h5">Multi-Org Coordination</h4>
+                <p class="text-muted small">
+                    NGOs, Bangladesh Red Crescent, student teams, and government agencies coordinate under one umbrella, preventing duplicated food packs and medical kits in flooded zones.
+                </p>
+                <div class="mt-auto pt-3">
+                    <a asp-controller="Organization" asp-action="PublicList" class="btn btn-sm btn-outline-primary">
+                        Partner Organizations &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-center">
+                <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-people-fill fs-3"></i>
+                </div>
+                <h4 class="fw-bold h5">Volunteer Operations</h4>
+                <p class="text-muted small">
+                    Volunteers receive real-time task dispatches, find active evacuation shelters, and log on-the-ground progress with GPS coordinates and photo verifications.
+                </p>
+                <div class="mt-auto pt-3">
+                    <a asp-controller="Shelter" asp-action="Index" class="btn btn-sm btn-outline-danger">
+                        Shelter Network &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── RECENT RELIEF OPERATIONS PREVIEW ── -->
+@if (recentOperations.Any())
+{
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="h4 fw-bold mb-1">Recent Relief Activities</h2>
+                <p class="text-muted small mb-0">Public records of recent flood relief missions and operations</p>
+            </div>
+            <a asp-controller="Organization" asp-action="PublicActivities" class="btn btn-outline-dark btn-sm">
+                View All Activities &rarr;
+            </a>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var op in recentOperations)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-3">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge @(op.Status == "Active" ? "bg-success" : op.Status == "Completed" ? "bg-primary" : "bg-secondary")">
+                                    @op.Status
+                                </span>
+                                <span class="small text-muted"><i class="bi bi-clock me-1"></i>@op.CreatedAt.ToString("dd MMM yyyy")</span>
+                            </div>
+
+                            <h5 class="fw-bold mb-2">@op.OperationName</h5>
+
+                            <p class="text-muted small mb-3">
+                                <i class="bi bi-building me-1 text-fl-green"></i> <strong>@(op.LeadOrganization?.OrganizationName ?? "Independent")</strong>
+                            </p>
+
+                            <div class="small text-secondary mb-3">
+                                <i class="bi bi-geo-alt me-1 text-danger"></i> @op.Location
+                            </div>
+
+                            <p class="text-muted small mb-3">
+                                @(string.IsNullOrEmpty(op.Description) ? "Coordinated relief distribution mission." : (op.Description.Length > 90 ? op.Description.Substring(0, 90) + "..." : op.Description))
+                            </p>
+
+                            <a asp-controller="Organization" asp-action="OperationDetails" asp-route-id="@op.DisasterOperationId" class="btn btn-sm btn-outline-dark w-100">
+                                View Operation Details &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<!-- ── NATIONAL EMERGENCY HOTLINES (BANGLADESH) ── -->
+<section class="mb-5 p-4 rounded-4 bg-light border">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-3 text-center text-lg-start">
+            <h4 class="fw-bold mb-1"><i class="bi bi-telephone-inbound-fill text-danger me-2"></i>Emergency Hotlines</h4>
+            <p class="text-muted small mb-0">Bangladesh government 24/7 toll-free crisis numbers</p>
+        </div>
+        <div class="col-lg-9">
+            <div class="row g-2 text-center">
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-white rounded-3 border shadow-sm">
+                        <div class="h4 fw-bold text-danger mb-0">999</div>
+                        <div class="small text-muted fw-semibold">National Emergency</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-white rounded-3 border shadow-sm">
+                        <div class="h4 fw-bold text-primary mb-0">1090</div>
+                        <div class="small text-muted fw-semibold">Flood &amp; Disaster Alert</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-white rounded-3 border shadow-sm">
+                        <div class="h4 fw-bold text-success mb-0">109</div>
+                        <div class="small text-muted fw-semibold">Child &amp; Women Help</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-white rounded-3 border shadow-sm">
+                        <div class="h4 fw-bold text-secondary mb-0">333</div>
+                        <div class="small text-muted fw-semibold">Citizen Relief Service</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── QUICK ACTION PORTALS (WHO ARE YOU?) ── -->
+<section class="mb-4">
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-lg-5 bg-fl-green text-white">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <h3 class="fw-bold mb-2">Are you representing an NGO, Volunteer Group, or Need Assistance?</h3>
+                <p class="mb-0 opacity-90">
+                    Join FloodLinkBD to coordinate resources, register field workers, publish public activities, or request life-saving flood relief.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-light fw-bold px-4">
+                        Register Now
+                    </a>
+                    <a asp-controller="Organization" asp-action="Register" class="btn btn-outline-light fw-bold px-4">
+                        Register Org
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

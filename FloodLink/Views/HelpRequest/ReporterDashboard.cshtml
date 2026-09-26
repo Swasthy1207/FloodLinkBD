@@ -1,0 +1,263 @@
+@model IEnumerable<FloodLink.Models.HelpRequest>
+
+@{
+    ViewData["Title"] = "Reporter Dashboard";
+    var categories = (string[])(ViewBag.Categories ?? Array.Empty<string>());
+
+    string StatusBadge(string s) => s switch
+    {
+        "Submitted"   => "bg-warning text-dark",
+        "In Progress" => "bg-primary",
+        "Resolved"    => "bg-success",
+        "Closed"      => "bg-secondary",
+        _             => "bg-secondary"
+    };
+    string PriorityBadge(string p) => p switch
+    {
+        "High"   => "bg-danger",
+        "Medium" => "bg-warning text-dark",
+        "Low"    => "bg-info text-dark",
+        _        => "bg-secondary"
+    };
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Reporter Dashboard</h3>
+            <p class="text-muted mb-0 small">Track and verify help requests submitted on behalf of the community.</p>
+        </div>
+        <a asp-controller="HelpRequest"
+           asp-action="Create"
+           class="btn btn-primary">
+            + Submit New Request
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search / Filter / Sort -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <form asp-controller="HelpRequest" asp-action="ReporterDashboard" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Search</label>
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control form-control-sm"
+                               placeholder="Title, location, description…" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Category</label>
+                        <select name="category" class="form-select form-select-sm">
+                            <option value="">All Categories</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat"
+                                        selected="@(ViewBag.Category == cat)">
+                                    @cat
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Status</label>
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <option value="Submitted"   selected="@(ViewBag.Status == "Submitted")">Submitted</option>
+                            <option value="In Progress" selected="@(ViewBag.Status == "In Progress")">In Progress</option>
+                            <option value="Resolved"    selected="@(ViewBag.Status == "Resolved")">Resolved</option>
+                            <option value="Closed"      selected="@(ViewBag.Status == "Closed")">Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Sort By</label>
+                        <select name="sortOrder" class="form-select form-select-sm">
+                            <option value="">Newest First</option>
+                            <option value="oldest"     selected="@(ViewBag.SortOrder == "oldest")">Oldest First</option>
+                            <option value="title_asc"  selected="@(ViewBag.SortOrder == "title_asc")">Title A–Z</option>
+                            <option value="title_desc" selected="@(ViewBag.SortOrder == "title_desc")">Title Z–A</option>
+                            <option value="priority"   selected="@(ViewBag.SortOrder == "priority")">Priority (High first)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex gap-1">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Go</button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(ViewBag.Search as string) ||
+                     !string.IsNullOrEmpty(ViewBag.Category as string) ||
+                     !string.IsNullOrEmpty(ViewBag.Status as string))
+                {
+                    <div class="mt-2">
+                        <a asp-controller="HelpRequest" asp-action="ReporterDashboard"
+                           class="btn btn-sm btn-outline-secondary">
+                            Clear Filters
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <p class="text-muted mb-3">
+                @if (!string.IsNullOrEmpty(ViewBag.Search as string) ||
+                     !string.IsNullOrEmpty(ViewBag.Category as string) ||
+                     !string.IsNullOrEmpty(ViewBag.Status as string))
+                {
+                    <span>No requests match your filters.</span>
+                }
+                else
+                {
+                    <span>You have not submitted any help requests yet.</span>
+                }
+            </p>
+            <a asp-controller="HelpRequest" asp-action="Create" class="btn btn-primary">
+                Submit Your First Request
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var r in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm h-100">
+                        @if (!string.IsNullOrEmpty(r.ImagePath))
+                        {
+                            <img src="@r.ImagePath"
+                                 alt="Help request photo"
+                                 class="card-img-top"
+                                 style="height:160px; object-fit:cover;" />
+                        }
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge @StatusBadge(r.Status)">@r.Status</span>
+                                <span class="badge @PriorityBadge(r.Priority)">@r.Priority</span>
+                            </div>
+                            <h6 class="card-title mb-1">@r.Title</h6>
+                            <p class="card-text text-muted small mb-2"
+                               style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                                @r.Description
+                            </p>
+                            <div class="small text-muted mb-1">
+                                <strong>Category:</strong> @r.Category
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <strong>Location:</strong> @r.Location
+                            </div>
+                            @if (!string.IsNullOrEmpty(r.AffectedPersonName))
+                            {
+                                <div class="small text-muted mb-1">
+                                    <strong>Affected Person:</strong> @r.AffectedPersonName
+                                </div>
+                            }
+                            <div class="small text-muted mb-1">
+                                <strong>People:</strong> @r.NumberOfPeople
+                            </div>
+                            <div class="small text-muted mb-3">
+                                @r.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                            </div>
+
+                            <div class="mt-auto d-flex gap-2 flex-wrap">
+                                <a asp-controller="HelpRequest"
+                                   asp-action="Details"
+                                   asp-route-id="@r.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i> View Details
+                                </a>
+                                @if (r.Status == "Submitted")
+                                {
+                                    <a asp-controller="HelpRequest"
+                                       asp-action="Edit"
+                                       asp-route-id="@r.Id"
+                                       class="btn btn-sm btn-outline-secondary">
+                                        Edit
+                                    </a>
+                                    <a asp-controller="HelpRequest"
+                                       asp-action="Delete"
+                                       asp-route-id="@r.Id"
+                                       class="btn btn-sm btn-outline-danger">
+                                        Delete
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if ((int)ViewBag.TotalPages > 1)
+        {
+            <nav class="mt-4" aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @((int)ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-controller="HelpRequest" asp-action="ReporterDashboard"
+                           asp-route-page="@((int)ViewBag.CurrentPage - 1)"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-category="@ViewBag.Category"
+                           asp-route-status="@ViewBag.Status"
+                           asp-route-sortOrder="@ViewBag.SortOrder">
+                            &laquo; Previous
+                        </a>
+                    </li>
+
+                    @for (int p = 1; p <= (int)ViewBag.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == (int)ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-controller="HelpRequest" asp-action="ReporterDashboard"
+                               asp-route-page="@p"
+                               asp-route-search="@ViewBag.Search"
+                               asp-route-category="@ViewBag.Category"
+                               asp-route-status="@ViewBag.Status"
+                               asp-route-sortOrder="@ViewBag.SortOrder">
+                                @p
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @((int)ViewBag.CurrentPage == (int)ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-controller="HelpRequest" asp-action="ReporterDashboard"
+                           asp-route-page="@((int)ViewBag.CurrentPage + 1)"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-category="@ViewBag.Category"
+                           asp-route-status="@ViewBag.Status"
+                           asp-route-sortOrder="@ViewBag.SortOrder">
+                            Next &raquo;
+                        </a>
+                    </li>
+                </ul>
+                <p class="text-center text-muted small">
+                    Showing page @ViewBag.CurrentPage of @ViewBag.TotalPages
+                    (@ViewBag.TotalCount total)
+                </p>
+            </nav>
+        }
+    }
+
+</div>

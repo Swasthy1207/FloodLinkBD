@@ -1,0 +1,205 @@
+@model IEnumerable<FloodLink.Models.HelpRequest>
+
+@{
+    ViewData["Title"] = "My Assignments";
+    var inProgress = Model.Count(r => r.Status == "In Progress");
+    var completed  = Model.Count(r => r.Status == "Completed");
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2 class="fw-bold">My Assignments</h2>
+        <p class="text-muted mb-0">Tasks assigned to you. Update progress and mark as completed when done.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>You have no assigned tasks yet.
+            <a asp-controller="HelpRequest" asp-action="AvailableRequests" class="alert-link ms-1">Browse available requests →</a>
+        </div>
+    }
+    else
+    {
+        <!-- Summary counts -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 text-center">
+                    <div class="fw-bold fs-4 text-warning">@inProgress</div>
+                    <div class="text-muted small">In Progress</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 text-center">
+                    <div class="fw-bold fs-4 text-success">@completed</div>
+                    <div class="text-muted small">Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var request in Model.OrderBy(r => r.Status == "Completed").ThenByDescending(r => r.CreatedAt))
+            {
+                var isCompleted = request.Status == "Completed";
+                var cardBorder  = isCompleted ? "border-success" : (request.Status == "In Progress" ? "border-warning" : "border-primary");
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100 border-start border-4 @cardBorder">
+                        <div class="card-body d-flex flex-column">
+
+                            <!-- Status badge -->
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-semibold mb-0">@request.Title</h5>
+                                @if (request.Status == "In Progress")
+                                {
+                                    <span class="badge bg-warning text-dark">In Progress</span>
+                                }
+                                else if (isCompleted)
+                                {
+                                    <span class="badge bg-success">Completed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@request.Status</span>
+                                }
+                            </div>
+
+                            <!-- Request details -->
+                            <div class="small text-muted mb-3">
+                                <div class="mb-1"><i class="bi bi-tag me-1"></i>@request.Category</div>
+                                <div class="mb-1"><i class="bi bi-geo-alt me-1"></i>@request.Location</div>
+                                <div class="mb-1"><i class="bi bi-people me-1"></i>@request.NumberOfPeople affected</div>
+                                <div class="mb-1"><i class="bi bi-calendar me-1"></i>Submitted @request.CreatedAt.ToString("dd MMM yyyy")</div>
+                            </div>
+
+                            <!-- Description -->
+                            <p class="text-muted small mb-3" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
+                                @request.Description
+                            </p>
+
+                            @if (isCompleted)
+                            {
+                                <!-- Completed state — accountability summary -->
+                                <div class="alert alert-success py-2 px-3 small mb-2">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    <strong>Completed</strong>
+                                    @if (request.CompletedAt.HasValue)
+                                    {
+                                        <span class="ms-1">on @request.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") UTC</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(request.VolunteerProgressNote))
+                                {
+                                    <div class="alert alert-light border py-2 px-3 small mb-2">
+                                        <i class="bi bi-chat-left-text me-1"></i>
+                                        <strong>Your note:</strong> @request.VolunteerProgressNote
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <!-- Current progress note if any -->
+                                @if (!string.IsNullOrEmpty(request.VolunteerProgressNote))
+                                {
+                                    <div class="alert alert-light border py-2 px-3 small mb-3">
+                                        <i class="bi bi-chat-left-text me-1"></i>
+                                        <strong>Last note:</strong> @request.VolunteerProgressNote
+                                    </div>
+                                }
+
+                                <!-- ── ACTION FORMS ── -->
+                                <div class="mt-auto">
+
+                                    @if (request.Status == "Submitted" || request.Status == "In Progress")
+                                    {
+                                        <!-- Add progress note (standalone) -->
+                                        <form asp-controller="HelpRequest"
+                                              asp-action="VolunteerAddNote"
+                                              method="post"
+                                              class="mb-3">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@request.Id" />
+                                            <div class="mb-2">
+                                                <label class="form-label small fw-semibold">Progress Note</label>
+                                                <textarea name="progressNote"
+                                                          class="form-control form-control-sm"
+                                                          rows="2"
+                                                          maxlength="500"
+                                                          placeholder="e.g. Medicine collected, delivery started…"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                                <i class="bi bi-chat-left-text me-1"></i>Save Note &amp; Notify Requester
+                                            </button>
+                                        </form>
+                                    }
+
+                                    @if (request.Status == "Submitted" || request.Status == "In Progress")
+                                    {
+                                        <!-- Mark as In Progress -->
+                                        @if (request.Status == "Submitted")
+                                        {
+                                            <form asp-controller="HelpRequest"
+                                                  asp-action="VolunteerUpdateStatus"
+                                                  method="post"
+                                                  class="mb-2">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@request.Id" />
+                                                <input type="hidden" name="status" value="In Progress" />
+                                                <button type="submit" class="btn btn-warning btn-sm w-100">
+                                                    <i class="bi bi-play-circle me-1"></i>Start Helping (Mark In Progress)
+                                                </button>
+                                            </form>
+                                        }
+
+                                        <!-- Mark as Completed (THE KEY FIX) -->
+                                        @if (request.Status == "In Progress")
+                                        {
+                                            <form asp-controller="HelpRequest"
+                                                  asp-action="VolunteerUpdateStatus"
+                                                  method="post"
+                                                  onsubmit="return confirm('Mark this request as Completed? This will notify the requester.');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@request.Id" />
+                                                <input type="hidden" name="status" value="Completed" />
+                                                <div class="mb-2">
+                                                    <textarea name="progressNote"
+                                                              class="form-control form-control-sm"
+                                                              rows="2"
+                                                              maxlength="500"
+                                                              placeholder="Optional: add a completion note for the requester…"></textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-success btn-sm w-100">
+                                                    <i class="bi bi-check2-circle me-1"></i>Mark as Completed
+                                                </button>
+                                            </form>
+                                        }
+                                    }
+                                </div>
+                            }
+
+                            <!-- View full details link -->
+                            <a asp-controller="HelpRequest"
+                               asp-action="Details"
+                               asp-route-id="@request.Id"
+                               class="btn btn-outline-primary btn-sm mt-3">
+                                <i class="bi bi-eye me-1"></i>View Full Details
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-controller="HelpRequest" asp-action="AvailableRequests" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-search me-1"></i>Available Requests
+        </a>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-link text-muted">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+</div>

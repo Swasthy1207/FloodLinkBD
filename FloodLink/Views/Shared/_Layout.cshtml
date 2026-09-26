@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="description"
+          content="FloodLinkBD — Bangladesh flood disaster coordination, volunteer management, and public accountability platform." />
+
+    <title>@ViewData["Title"] — FloodLinkBD</title>
+
+
+   
+    <script>
+            (function () {
+                var t = localStorage.getItem('fl-theme') || 'light';
+                document.getElementById('htmlRoot')
+                    .setAttribute('data-bs-theme', t);
+            })();
+    </script>
+   <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet" />
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/FloodLink.styles.css"
+          asp-append-version="true" />
+
+    <style>
+
+         
+
+            .navbar {
+                min-height: 68px;
+                font-family: 'Poppins', sans-serif;
+            }
+
+                .navbar .container {
+                    max-width: 1440px;
+                }
+
+
+
+            .navbar-brand {
+                flex-shrink: 0;
+                margin-right: 1.5rem;
+                letter-spacing: -0.3px;
+            }
+
+            .fl-logo-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .fl-brand-text {
+                font-size: 1.15rem;
+                font-weight: 700;
+                letter-spacing: -0.4px;
+            }
+
+            .fl-brand-bd {
+                color: #006A4E;
+            }
+
+
+
+            .navbar-nav {
+                align-items: center;
+            }
+
+                .navbar-nav.me-auto {
+                    flex-wrap: nowrap;
+                }
+
+            .navbar .nav-link {
+                white-space: nowrap;
+            }
+
+            .navbar-nav .nav-link {
+                font-size: 0.88rem;
+                font-weight: 500;
+                white-space: nowrap;
+                padding: 0.55rem 0.65rem !important;
+                border-radius: 8px;
+                transition: background-color 0.2s ease, color 0.2s ease;
+            }
+
+                .navbar-nav .nav-link:hover {
+                    background-color: rgba(0, 106, 78, 0.07);
+                }
+
+                .navbar-nav .nav-link.text-fl-green {
+                    font-weight: 600;
+                }
+
+
+            .navbar .dropdown-menu {
+                min-width: 240px;
+                margin-top: 0.45rem;
+                padding: 0.45rem;
+                border-radius: 12px;
+                border: 1px solid rgba(0, 0, 0, 0.06);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
+            }
+
+            .navbar .dropdown-item {
+                border-radius: 8px;
+                padding: 0.55rem 0.75rem;
+                font-size: 0.88rem;
+                transition: background-color 0.2s ease, color 0.2s ease;
+            }
+
+                .navbar .dropdown-item:hover {
+                    background-color: rgba(0, 106, 78, 0.08);
+                }
+
+            .navbar .dropdown-header {
+                padding: 0.45rem 0.75rem;
+                font-size: 0.82rem;
+                font-weight: 600;
+                color: #006A4E;
+            }
+
+            .navbar .dropdown-divider {
+                margin: 0.4rem 0;
+            }
+
+
+
+            .fl-user-dropdown-toggle {
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+                font-weight: 600 !important;
+            }
+
+                .fl-user-dropdown-toggle::after {
+                    margin-left: 0.35rem;
+                }
+
+            .fl-role-badge {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.2rem 0.55rem;
+                border-radius: 999px;
+                font-size: 0.70rem;
+                font-weight: 600;
+                line-height: 1.2;
+                background-color: #006A4E;
+                color: #fff;
+            }
+
+            .navbar .btn-light {
+                width: 38px;
+                height: 38px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                border-radius: 50%;
+            }
+
+            .fl-user-info {
+                padding: 0.55rem 0.75rem;
+                border-radius: 8px;
+                background-color: rgba(0, 106, 78, 0.04);
+                margin-bottom: 0.25rem;
+            }
+
+            .fl-user-name {
+                font-size: 0.88rem;
+                font-weight: 600;
+                color: #212529;
+            }
+
+
+            .navbar-toggler {
+                padding: 0.45rem 0.6rem;
+                border-radius: 8px;
+            }
+
+                .navbar-toggler:focus {
+                    box-shadow: none;
+                }
+
+            @@media (max-width: 1399.98px) {
+
+                .navbar .container {
+                    max-width: 1320px;
+                }
+
+                .navbar-brand {
+                    margin-right: 1rem;
+                }
+
+                .navbar-nav .nav-link {
+                    font-size: 0.84rem;
+                    padding-left: 0.5rem !important;
+                    padding-right: 0.5rem !important;
+                }
+            }
+
+            @@media (max-width: 1199.98px) {
+
+                .navbar-collapse {
+                    margin-top: 0.75rem;
+                    padding: 0.75rem 0;
+                    border-top: 1px solid #eeeeee;
+                }
+
+                .navbar-nav {
+                    align-items: stretch;
+                }
+
+                    .navbar-nav .nav-link {
+                        padding: 0.65rem 0.75rem !important;
+                    }
+
+                .navbar .dropdown-menu {
+                    border: 0;
+                    box-shadow: none !important;
+                    padding-left: 0.75rem;
+                    margin-top: 0;
+                }
+
+                .navbar .navbar-nav.ms-auto {
+                    margin-top: 0.75rem;
+                    padding-top: 0.75rem;
+                    border-top: 1px solid #eeeeee;
+                }
+
+                .navbar .btn-light {
+                    margin: 0.25rem 0;
+                }
+            }
+
+            @@media (max-width: 575.98px) {
+
+                .navbar {
+                    min-height: 60px;
+                }
+
+                    .navbar .container {
+                        padding-left: 1rem;
+                        padding-right: 1rem;
+                    }
+
+                .fl-brand-text {
+                    font-size: 1rem;
+                }
+
+                .fl-logo-badge svg {
+                    width: 25px;
+                    height: 25px;
+                }
+            }
+    </style>
+
+</head>
+
+
+<body>
+
+    <header>
+
+        <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm py-2">
+
+            <div class="container">
+
+                <a class="navbar-brand fw-bold d-flex align-items-center gap-2"
+                   asp-controller="Home"
+                   asp-action="Index">
+
+                    <span class="fl-logo-badge">
+
+                        <svg width="28"
+                             height="28"
+                             viewBox="0 0 28 28"
+                             fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+
+                            <circle cx="14"
+                                    cy="14"
+                                    r="14"
+                                    fill="#006A4E" />
+
+                            <circle cx="14"
+                                    cy="14"
+                                    r="6"
+                                    fill="#F42A41" />
+
+                            <path d="M5 18 Q8 15 11 18 Q14 21 17 18 Q20 15 23 18"
+                                  stroke="white"
+                                  stroke-width="1.5"
+                                  fill="none"
+                                  stroke-linecap="round" />
+
+                        </svg>
+
+                    </span>
+
+
+                    <span class="fl-brand-text">
+                        FloodLink<span class="fl-brand-bd">BD</span>
+                    </span>
+
+                </a>
+
+                <button class="navbar-toggler border-0"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+
+                    <span class="navbar-toggler-icon"></span>
+
+                </button>
+
+                <div class="collapse navbar-collapse"
+                     id="mainNavbar">
+
+                    <ul class="navbar-nav me-auto gap-xl-1">
+
+                        <li class="nav-item">
+
+                            <a class="nav-link"
+                               asp-controller="Home"
+                               asp-action="Index">
+
+                                Home
+
+                            </a>
+
+                        </li>
+
+                        <li class="nav-item">
+
+                            <a class="nav-link"
+                               asp-controller="Organization"
+                               asp-action="PublicActivities">
+
+                                Activities
+
+                            </a>
+
+                        </li>
+
+                        <li class="nav-item">
+
+                            <a class="nav-link"
+                               asp-controller="Organization"
+                               asp-action="PublicList">
+
+                                Organizations
+
+                            </a>
+
+                        </li>
+
+                        <li class="nav-item">
+
+                            <a class="nav-link"
+                               asp-controller="Shelter"
+                               asp-action="Index">
+
+                                Shelters
+
+                            </a>
+
+                        </li>
+
+                        <li class="nav-item">
+
+                            <a class="nav-link"
+                               asp-controller="Announcement"
+                               asp-action="Index">
+
+                                Announcements
+
+                            </a>
+
+                        </li>
+
+                        @if (User.Identity != null &&
+                             User.Identity.IsAuthenticated)
+                        {
+
+                            <li class="nav-item">
+
+                                <a class="nav-link fw-semibold text-fl-green"
+                                   asp-controller="Dashboard"
+                                   asp-action="Index">
+
+                                    <i class="bi bi-grid-fill me-1"></i>
+
+                                    Dashboard
+
+                                </a>
+
+                            </li>
+
+                        }
+
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto align-items-xl-center gap-1">
+
+
+                        @if (User.Identity != null &&
+                             User.Identity.IsAuthenticated)
+                        {
+
+                            var fullName =
+                                User.FindFirst("FullName")?.Value
+                                ?? User.Identity.Name
+                                ?? "User";
+
+                            var role =
+                                User.Claims.FirstOrDefault(
+                                    c => c.Type ==
+                                    System.Security.Claims.ClaimTypes.Role)
+                                ?.Value
+                                ?? "User";
+
+                            <li class="nav-item">
+
+                                <a asp-controller="Notification"
+                                   asp-action="Index"
+                                   class="btn btn-light position-relative p-2 rounded-circle border"
+                                   title="Notifications">
+
+                                    <i class="bi bi-bell-fill text-secondary"></i>
+
+                                    <span id="navNotificationBadge"
+                                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+                                          style="font-size:0.65rem;">
+
+                                        0
+
+                                    </span>
+
+                                </a>
+
+                            </li>
+
+
+                            <li class="nav-item">
+
+                                <button id="themeSwitchBtn"
+                                        class="btn btn-light p-2 rounded-circle border"
+                                        title="Toggle dark/light mode"
+                                        aria-label="Toggle dark/light mode">
+
+                                    <i id="themeIcon"
+                                       class="bi bi-moon-fill text-secondary"></i>
+
+                                </button>
+
+                            </li>
+
+
+                            <li class="nav-item dropdown">
+
+
+                                <a class="nav-link dropdown-toggle fl-user-dropdown-toggle"
+                                   href="#"
+                                   id="userMenuDropdown"
+                                   role="button"
+                                   data-bs-toggle="dropdown"
+                                   aria-expanded="false">
+
+                                    <i class="bi bi-person-circle"></i>
+
+                                    @fullName
+
+                                </a>
+
+
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0"
+                                    aria-labelledby="userMenuDropdown">
+
+
+                                    <li>
+
+                                        <div class="fl-user-info">
+
+                                            <div class="fl-user-name">
+                                                @fullName
+                                            </div>
+
+                                            <div class="mt-1">
+
+                                                <span class="fl-role-badge">
+                                                    @role
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </li>
+
+
+                                    <!-- =================================================
+                                         ORGANIZATION / ORGANIZATION ADMIN
+                                         ================================================= -->
+                                    @if (User.IsInRole("Organization Admin") ||
+                                         User.IsInRole("Organization"))
+                                    {
+
+                                        <li>
+
+                                            <h6 class="dropdown-header">
+
+                                                <i class="bi bi-building me-1"></i>
+
+                                                Organization
+
+                                            </h6>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="Organization"
+                                               asp-action="MyOrganization">
+
+                                                <i class="bi bi-building me-2"></i>
+
+                                                My Organization
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="Organization"
+                                               asp-action="Activities">
+
+                                                <i class="bi bi-activity me-2"></i>
+
+                                                Our Activities
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="Volunteer"
+                                               asp-action="ManageAffiliations">
+
+                                                <i class="bi bi-people me-2"></i>
+
+                                                Volunteers
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+                                            <hr class="dropdown-divider" />
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpCoordination"
+                                               asp-action="Index">
+
+                                                <i class="bi bi-search me-2"></i>
+
+                                                Find Help Needs
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpCoordination"
+                                               asp-action="MyHelpNeeds">
+
+                                                <i class="bi bi-hand-index-thumb me-2"></i>
+
+                                                My Help Needs
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpCoordination"
+                                               asp-action="MyOffers">
+
+                                                <i class="bi bi-hand-thumbs-up me-2"></i>
+
+                                                My Help Offers
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpCoordination"
+                                               asp-action="AcceptedOffers">
+
+                                                <i class="bi bi-check-circle me-2"></i>
+
+                                                Accepted Offers
+
+                                            </a>
+
+                                        </li>
+
+                                    }
+
+
+                                    <!-- =================================================
+                                         VOLUNTEER
+                                         ================================================= -->
+                                    @if (User.IsInRole("Volunteer"))
+                                    {
+
+                                        <li>
+
+                                            <h6 class="dropdown-header">
+
+                                                <i class="bi bi-person-badge me-1"></i>
+
+                                                Volunteer
+
+                                            </h6>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpRequest"
+                                               asp-action="MyAssignments">
+
+                                                <i class="bi bi-list-task me-2"></i>
+
+                                                My Tasks
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpRequest"
+                                               asp-action="AvailableRequests">
+
+                                                <i class="bi bi-search me-2"></i>
+
+                                                Available Requests
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="Volunteer"
+                                               asp-action="MyProfile">
+
+                                                <i class="bi bi-person me-2"></i>
+
+                                                My Profile
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpCoordination"
+                                               asp-action="MyHelpAssignments">
+
+                                                <i class="bi bi-clipboard-check me-2"></i>
+
+                                                Help Assignments
+
+                                            </a>
+
+                                        </li>
+
+                                    }
+
+
+                                    <!-- =================================================
+                                         CITIZEN
+                                         ================================================= -->
+                                    @if (User.IsInRole("Citizen"))
+                                    {
+
+                                        <li>
+
+                                            <h6 class="dropdown-header">
+
+                                                <i class="bi bi-person me-1"></i>
+
+                                                Citizen
+
+                                            </h6>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpRequest"
+                                               asp-action="Create">
+
+                                                <i class="bi bi-plus-circle me-2"></i>
+
+                                                Request Help
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpRequest"
+                                               asp-action="MyRequests">
+
+                                                <i class="bi bi-list-check me-2"></i>
+
+                                                My Requests
+
+                                            </a>
+
+                                        </li>
+
+                                    }
+
+
+                                    <!-- =================================================
+                                         COMMUNITY REPORTER
+                                         ================================================= -->
+                                    @if (User.IsInRole("Community Reporter"))
+                                    {
+
+                                        <li>
+
+                                            <h6 class="dropdown-header">
+
+                                                <i class="bi bi-camera me-1"></i>
+
+                                                Community Reporter
+
+                                            </h6>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpRequest"
+                                               asp-action="Create">
+
+                                                <i class="bi bi-plus-circle me-2"></i>
+
+                                                Submit Report
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpRequest"
+                                               asp-action="ReporterDashboard">
+
+                                                <i class="bi bi-file-earmark-text me-2"></i>
+
+                                                My Reports
+
+                                            </a>
+
+                                        </li>
+
+                                    }
+
+
+                                    <!-- =================================================
+                                         COORDINATOR
+                                         ================================================= -->
+                                    @if (User.IsInRole("Coordinator"))
+                                    {
+
+                                        <li>
+
+                                            <h6 class="dropdown-header">
+
+                                                <i class="bi bi-diagram-3 me-1"></i>
+
+                                                Coordinator
+
+                                            </h6>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpRequest"
+                                               asp-action="AllRequests">
+
+                                                <i class="bi bi-life-preserver me-2"></i>
+
+                                                Help Requests
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="Volunteer"
+                                               asp-action="Index">
+
+                                                <i class="bi bi-people me-2"></i>
+
+                                                Volunteers
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpCoordination"
+                                               asp-action="Coordinator">
+
+                                                <i class="bi bi-diagram-3 me-2"></i>
+
+                                                Coordination
+
+                                            </a>
+
+                                        </li>
+
+                                    }
+
+
+                                    <!-- =================================================
+                                         ADMIN / SUPER ADMIN
+                                         ================================================= -->
+                                    @if (User.IsInRole("Super Admin") ||
+                                         User.IsInRole("Admin"))
+                                    {
+
+                                        <li>
+
+                                            <h6 class="dropdown-header">
+
+                                                <i class="bi bi-shield-fill me-1"></i>
+
+                                                Administration
+
+                                            </h6>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="Account"
+                                               asp-action="Users">
+
+                                                <i class="bi bi-people me-2"></i>
+
+                                                Users &amp; Roles
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="Organization"
+                                               asp-action="Index">
+
+                                                <i class="bi bi-building me-2"></i>
+
+                                                Organizations
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="HelpRequest"
+                                               asp-action="AllRequests">
+
+                                                <i class="bi bi-life-preserver me-2"></i>
+
+                                                All Help Requests
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <li>
+                                            <hr class="dropdown-divider" />
+                                        </li>
+
+
+                                        <!-- POST ANNOUNCEMENT -->
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="Announcement"
+                                               asp-action="Create">
+
+                                                <i class="bi bi-broadcast me-2"></i>
+
+                                                Post Announcement
+
+                                            </a>
+
+                                        </li>
+
+                                    }
+
+
+                                    <!-- =================================================
+                                         LOGOUT
+                                         ================================================= -->
+                                    <li>
+
+                                        <hr class="dropdown-divider" />
+
+                                    </li>
+
+
+                                    <li class="px-2 pt-1">
+
+                                        <form asp-controller="Account"
+                                              asp-action="Logout"
+                                              method="post">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-outline-danger btn-sm w-100">
+
+                                                <i class="bi bi-box-arrow-right me-1"></i>
+
+                                                Logout
+
+                                            </button>
+
+                                        </form>
+
+                                    </li>
+
+                                </ul>
+
+                            </li>
+
+                        }
+                        else
+                        {
+
+                            <!-- =================================================
+                                 LOGIN
+                                 ================================================= -->
+                            <li class="nav-item">
+
+                                <a class="nav-link"
+                                   asp-controller="Account"
+                                   asp-action="Login">
+
+                                    Login
+
+                                </a>
+
+                            </li>
+
+
+                            <!-- =================================================
+                                 REQUEST HELP
+                                 ================================================= -->
+                            <li class="nav-item">
+
+                                <a class="btn btn-fl-green btn-sm px-3 ms-xl-2"
+                                   asp-controller="HelpRequest"
+                                   asp-action="Create">
+
+                                    <i class="bi bi-plus-circle me-1"></i>
+
+                                    Request Help
+
+                                </a>
+
+                            </li>
+
+                        }
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+         ========================================================= -->
+    <div class="container-fluid px-0">
+
+        <main role="main"
+              class="py-4 px-3 px-md-4">
+
+
+            <!-- =================================================
+                 GLOBAL USER FEEDBACK
+                 ================================================= -->
+            <div class="container">
+
+
+                <!-- SUCCESS -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+
+                    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-3"
+                         role="alert">
+
+                        <i class="bi bi-check-circle-fill me-2"></i>
+
+                        @TempData["SuccessMessage"]
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="alert"
+                                aria-label="Close">
+                        </button>
+
+                    </div>
+
+                }
+
+
+                <!-- ERROR -->
+                @if (TempData["ErrorMessage"] != null)
+                {
+
+                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-3"
+                         role="alert">
+
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                        @TempData["ErrorMessage"]
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="alert"
+                                aria-label="Close">
+                        </button>
+
+                    </div>
+
+                }
+
+            </div>
+
+
+            <!-- =================================================
+                 PAGE CONTENT
+                 ================================================= -->
+            @RenderBody()
+
+        </main>
+
+    </div>
+
+
+    <!-- =========================================================
+         FOOTER
+         ========================================================= -->
+    <footer class="bg-dark text-white mt-5 py-4">
+
+        <div class="container">
+
+            <div class="row align-items-center gy-3">
+
+
+                <!-- FOOTER BRAND -->
+                <div class="col-md-4">
+
+                    <div class="d-flex align-items-center gap-2 mb-1">
+
+                        <svg width="22"
+                             height="22"
+                             viewBox="0 0 28 28"
+                             fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+
+                            <circle cx="14"
+                                    cy="14"
+                                    r="14"
+                                    fill="#006A4E" />
+
+                            <circle cx="14"
+                                    cy="14"
+                                    r="6"
+                                    fill="#F42A41" />
+
+                            <path d="M5 18 Q8 15 11 18 Q14 21 17 18 Q20 15 23 18"
+                                  stroke="white"
+                                  stroke-width="1.5"
+                                  fill="none"
+                                  stroke-linecap="round" />
+
+                        </svg>
+
+
+                        <span class="fw-bold">
+                            FloodLinkBD
+                        </span>
+
+                    </div>
+
+
+                    <p class="text-white-50 small mb-0">
+
+                        Bangladesh flood coordination
+                        &amp; public accountability platform.
+
+                    </p>
+
+                </div>
+
+
+                <!-- FOOTER LINKS -->
+                <div class="col-md-4 text-md-center">
+
+                    <div class="d-flex justify-content-md-center gap-3 flex-wrap">
+
+
+                        <a asp-controller="Organization"
+                           asp-action="PublicActivities"
+                           class="text-white-50 text-decoration-none small">
+
+                            Activities
+
+                        </a>
+
+
+                        <a asp-controller="Organization"
+                           asp-action="PublicList"
+                           class="text-white-50 text-decoration-none small">
+
+                            Organizations
+
+                        </a>
+
+
+                        <a asp-controller="Shelter"
+                           asp-action="Index"
+                           class="text-white-50 text-decoration-none small">
+
+                            Shelters
+
+                        </a>
+
+
+                        <a asp-controller="HelpRequest"
+                           asp-action="Create"
+                           class="text-white-50 text-decoration-none small">
+
+                            Request Help
+
+                        </a>
+
+
+                        <a asp-controller="Announcement"
+                           asp-action="Index"
+                           class="text-white-50 text-decoration-none small">
+
+                            Announcements
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- COPYRIGHT -->
+                <div class="col-md-4 text-md-end">
+
+                    <p class="text-white-50 small mb-0">
+
+                        &copy; 2026 FloodLinkBD
+                        &mdash;
+                        Built for Bangladesh.
+
+                    </p>
+
+
+                    <a asp-controller="Home"
+                       asp-action="Privacy"
+                       class="text-white-50 text-decoration-none small">
+
+                        Privacy Policy
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+         ========================================================= -->
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/js/site.js"
+            asp-append-version="true">
+    </script>
+
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+
+    <!-- =========================================================
+         DARK MODE PERSISTENCE
+         ========================================================= -->
+    <script>
+
+            (function () {
+
+                var btn =
+                    document.getElementById('themeSwitchBtn');
+
+                var icon =
+                    document.getElementById('themeIcon');
+
+                var html =
+                    document.getElementById('htmlRoot');
+
+
+                if (!btn)
+                    return;
+
+
+                function applyTheme(t) {
+
+                    html.setAttribute(
+                        'data-bs-theme',
+                        t
+                    );
+
+                    localStorage.setItem(
+                        'fl-theme',
+                        t
+                    );
+
+
+                    if (icon) {
+
+                        icon.className =
+                            t === 'dark'
+                                ? 'bi bi-sun-fill text-warning'
+                                : 'bi bi-moon-fill text-secondary';
+
+                    }
+
+                }
+
+
+                applyTheme(
+                    localStorage.getItem('fl-theme')
+                    || 'light'
+                );
+
+
+                btn.addEventListener(
+                    'click',
+                    function () {
+
+                        var current =
+                            html.getAttribute(
+                                'data-bs-theme'
+                            )
+                            || 'light';
+
+
+                        applyTheme(
+                            current === 'dark'
+                                ? 'light'
+                                : 'dark'
+                        );
+
+                    }
+                );
+
+            })();
+
+    </script>
+
+
+    <!-- =========================================================
+         NOTIFICATION BADGE
+         ========================================================= -->
+    @if (User.Identity != null &&
+         User.Identity.IsAuthenticated)
+    {
+
+        <script>
+
+                document.addEventListener(
+                    "DOMContentLoaded",
+                    function () {
+
+                        fetch('/Notification/GetUnreadCount')
+
+                            .then(r => r.json())
+
+                            .then(data => {
+
+                                const badge =
+                                    document.getElementById(
+                                        'navNotificationBadge'
+                                    );
+
+
+                                if (badge &&
+                                    data &&
+                                    data.count > 0) {
+
+                                    badge.innerText =
+                                        data.count;
+
+                                    badge.classList.remove(
+                                        'd-none'
+                                    );
+
+                                }
+
+                            })
+
+                            .catch(() => {});
+
+                    }
+                );
+
+        </script>
+
+    }
+
+</body>
+</html>

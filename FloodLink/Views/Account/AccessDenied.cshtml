@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    var userRole = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+
+            <div class="card border-0 shadow-sm p-4">
+                <div class="card-body">
+
+                    <div class="mb-3 text-danger" style="font-size: 54px;">
+                        &#9888;
+                    </div>
+
+                    <h2 class="fw-bold text-danger mb-2">Access Denied</h2>
+                    <h5 class="text-secondary mb-3">403 - Forbidden</h5>
+
+                    <p class="text-muted mb-4">
+                        You do not have permission to access this page. Your current account role
+                        <span class="badge bg-secondary">@userRole</span> does not have the required authorization.
+                    </p>
+
+                    <div class="d-flex justify-content-center gap-2">
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">
+                            Back to My Dashboard
+                        </a>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                            Go to Home
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

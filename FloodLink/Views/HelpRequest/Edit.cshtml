@@ -1,0 +1,301 @@
+@model FloodLink.Models.HelpRequestViewModel
+
+@{
+    ViewData["Title"] = "Edit Help Request";
+    var categories = (string[])ViewBag.Categories;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a asp-controller="HelpRequest" asp-action="MyRequests">My Requests</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Edit Request</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm">
+                <div class="card-header border-bottom py-3">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Help Request</h4>
+                    <p class="text-muted mb-0 small mt-1">Update the details of your help request.</p>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form asp-controller="HelpRequest"
+                          asp-action="Edit"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="ExistingImagePath" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-3"></div>
+
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-semibold">
+                                Request Title <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Title" class="form-control" maxlength="150" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Affected Person Name -->
+                        @if (User.IsInRole("Community Reporter"))
+                        {
+                            <div class="mb-3">
+                                <label asp-for="AffectedPersonName" class="form-label fw-semibold"></label>
+                                <input asp-for="AffectedPersonName" class="form-control" maxlength="150" />
+                                <span asp-validation-for="AffectedPersonName" class="text-danger small"></span>
+                            </div>
+                        }
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-semibold">
+                                Description <span class="text-danger">*</span>
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4" maxlength="2000"></textarea>
+                            <div class="form-text text-end">
+                                <span id="descCharCount">@Model.Description.Length</span>/2000
+                            </div>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label asp-for="Category" class="form-label fw-semibold">
+                                Help Category <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="Category" class="form-select">
+                                <option value="">-- Select Category --</option>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat">@cat</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Category" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Number of People + Location -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label asp-for="NumberOfPeople" class="form-label fw-semibold">
+                                    Affected People <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="NumberOfPeople" type="number" class="form-control"
+                                       min="1" max="100000" />
+                                <span asp-validation-for="NumberOfPeople" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-8">
+                                <label asp-for="Location" class="form-label fw-semibold">
+                                    Location <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Location" class="form-control" maxlength="300" />
+                                <span asp-validation-for="Location" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Contact -->
+                        <div class="mb-3">
+                            <label asp-for="ContactInformation" class="form-label fw-semibold">
+                                Contact Information <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="ContactInformation" class="form-control" maxlength="200" />
+                            <span asp-validation-for="ContactInformation" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Map Picker -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-geo-alt-fill text-primary me-1"></i>
+                                Pin Location on Map <span class="text-muted fw-normal small">(optional)</span>
+                            </label>
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" id="detectLocationBtn"
+                                        class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-crosshair me-1"></i>Use My Location
+                                </button>
+                                <button type="button" id="clearMapBtn"
+                                        class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-x-circle me-1"></i>Clear
+                                </button>
+                            </div>
+                            <div id="editMap"
+                                 style="height:280px; border-radius:0.5rem; border:1px solid #dee2e6;"
+                                 class="mb-2"></div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small text-muted">Latitude</label>
+                                    <input asp-for="Latitude" type="number" step="any"
+                                           id="latInput" class="form-control form-control-sm" readonly />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small text-muted">Longitude</label>
+                                    <input asp-for="Longitude" type="number" step="any"
+                                           id="lngInput" class="form-control form-control-sm" readonly />
+                                </div>
+                            </div>
+                            <div class="form-text">Click the map to move the pin.</div>
+                        </div>
+
+                        <!-- Existing Attachments -->
+                        @if (Model.ExistingAttachments.Count > 0)
+                        {
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-paperclip me-1"></i>Current Photos
+                                </label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var att in Model.ExistingAttachments)
+                                    {
+                                        <div class="position-relative" style="width:100px;height:100px;">
+                                            <img src="@att.FilePath" alt="@att.FileName"
+                                                 class="img-thumbnail w-100 h-100 object-fit-cover" />
+                                            <div class="form-check position-absolute top-0 end-0 m-1">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="DeleteAttachmentIds"
+                                                       value="@att.Id"
+                                                       id="del_@att.Id"
+                                                       title="Mark for deletion" />
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="form-text text-danger">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Check the box on a photo to delete it when you save.
+                                </div>
+                            </div>
+                        }
+
+                        <!-- New Image Upload -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-images me-1"></i>
+                                Add More Photos <span class="text-muted fw-normal small">(up to 5 total)</span>
+                            </label>
+                            <input name="ImageFiles"
+                                   type="file"
+                                   id="imageFilesInput"
+                                   class="form-control"
+                                   accept="image/jpeg,image/jpg,image/png,image/webp"
+                                   multiple />
+                            <div class="form-text">JPG, PNG, or WEBP. Max 5 MB per file.</div>
+                            <span asp-validation-for="ImageFiles" class="text-danger small"></span>
+                            <div id="imagePreviewGrid" class="d-flex flex-wrap gap-2 mt-3"></div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-controller="HelpRequest" asp-action="MyRequests"
+                               class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // ── Description counter ────────────────────────────────────────────
+        const descArea  = document.querySelector('textarea[name="Description"]');
+        const charCount = document.getElementById('descCharCount');
+        if (descArea) {
+            descArea.addEventListener('input', () => charCount.textContent = descArea.value.length);
+        }
+
+        // ── Multi image preview ────────────────────────────────────────────
+        const imageInput  = document.getElementById('imageFilesInput');
+        const previewGrid = document.getElementById('imagePreviewGrid');
+        const ALLOWED_MIME = ['image/jpeg','image/jpg','image/png','image/webp'];
+        const MAX_BYTES    = 5 * 1024 * 1024;
+
+        imageInput.addEventListener('change', function () {
+            previewGrid.innerHTML = '';
+            Array.from(this.files).forEach((file, idx) => {
+                if (!ALLOWED_MIME.includes(file.type) || file.size > MAX_BYTES) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const d = document.createElement('div');
+                    d.className = 'position-relative';
+                    d.style.cssText = 'width:100px;height:100px;';
+                    d.innerHTML = `<img src="${e.target.result}" class="img-thumbnail w-100 h-100 object-fit-cover" />`;
+                    previewGrid.appendChild(d);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // ── Leaflet Map Picker ─────────────────────────────────────────────
+        const latInput   = document.getElementById('latInput');
+        const lngInput   = document.getElementById('lngInput');
+        const initLat    = parseFloat(latInput.value) || 23.8103;
+        const initLng    = parseFloat(lngInput.value) || 90.4125;
+        const initZoom   = latInput.value ? 14 : 7;
+
+        const map = L.map('editMap').setView([initLat, initLng], initZoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors', maxZoom: 19
+        }).addTo(map);
+
+        let marker = null;
+
+        function setMarker(lat, lng) {
+            lat = parseFloat(lat.toFixed(6));
+            lng = parseFloat(lng.toFixed(6));
+            if (marker) marker.setLatLng([lat, lng]);
+            else {
+                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+                marker.on('dragend', e => {
+                    latInput.value = e.target.getLatLng().lat.toFixed(6);
+                    lngInput.value = e.target.getLatLng().lng.toFixed(6);
+                });
+            }
+            latInput.value = lat;
+            lngInput.value = lng;
+            map.setView([lat, lng], 13);
+        }
+
+        if (latInput.value && lngInput.value) setMarker(initLat, initLng);
+
+        map.on('click', e => setMarker(e.latlng.lat, e.latlng.lng));
+
+        document.getElementById('detectLocationBtn').addEventListener('click', () => {
+            if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+            navigator.geolocation.getCurrentPosition(
+                p => setMarker(p.coords.latitude, p.coords.longitude),
+                () => alert('Could not detect location.')
+            );
+        });
+
+        document.getElementById('clearMapBtn').addEventListener('click', () => {
+            if (marker) { map.removeLayer(marker); marker = null; }
+            latInput.value = '';
+            lngInput.value = '';
+        });
+    </script>
+}

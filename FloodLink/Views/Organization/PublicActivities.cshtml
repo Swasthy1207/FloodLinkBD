@@ -1,0 +1,166 @@
+@model IEnumerable<FloodLink.Models.DisasterOperation>
+@using FloodLink.Models
+
+@{
+    ViewData["Title"] = "Relief Activities — FloodLinkBD";
+    var partnerMap = ViewBag.PartnerMap as Dictionary<int, List<Organization>> ?? new();
+}
+
+<div class="container py-4">
+
+    <!-- Page header -->
+    <div class="mb-4">
+        <h1 class="h2 fw-bold mb-1">
+            <i class="bi bi-diagram-3 me-2 text-fl-green"></i>Public Relief Activities
+        </h1>
+        <p class="text-muted mb-0">
+            Live accountability: what organizations are doing, where, and with whom.
+        </p>
+    </div>
+
+    <!-- ── FILTER BAR ── -->
+    <div class="card border-0 shadow-sm mb-4 bg-light">
+        <div class="card-body py-3">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold mb-1">Location</label>
+                    <input type="text" name="location" class="form-control form-control-sm"
+                           placeholder="e.g. Chattogram, Anwara…"
+                           value="@ViewBag.FilterLocation" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold mb-1">Activity Type</label>
+                    <input type="text" name="type" class="form-control form-control-sm"
+                           placeholder="e.g. Food, Rescue…"
+                           value="@ViewBag.FilterType" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold mb-1">Status</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">All</option>
+                        <option value="Active"    selected="@(ViewBag.FilterStatus == "Active"    ? "selected" : null)">Active</option>
+                        <option value="Completed" selected="@(ViewBag.FilterStatus == "Completed" ? "selected" : null)">Completed</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-fl-green btn-sm flex-grow-1">
+                        <i class="bi bi-search me-1"></i>Filter
+                    </button>
+                    <a asp-action="PublicActivities" class="btn btn-outline-secondary btn-sm">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── RESULT COUNT ── -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="text-muted small mb-0">
+            Showing <strong>@Model.Count()</strong> relief activit@(Model.Count() == 1 ? "y" : "ies")
+        </p>
+        @if (User.IsInRole("Organization Admin") || User.IsInRole("Organization"))
+        {
+            <a asp-action="CreateOperation" class="btn btn-fl-green btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Post New Activity
+            </a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No relief activities found for the selected filters.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var op in Model)
+            {
+                var partners = partnerMap.TryGetValue(op.DisasterOperationId, out var p) ? p : new List<Organization>();
+                var isActive = op.Status == "Active";
+                var statusClass = isActive ? "bg-warning text-dark" : "bg-fl-green text-white";
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 border-start border-4 @(isActive ? "border-warning" : "border-fl-green")">
+                        <div class="card-body d-flex flex-column gap-2">
+
+                            <!-- Status + type -->
+                            <div class="d-flex justify-content-between align-items-start">
+                                <span class="badge @statusClass">@op.Status</span>
+                                @if (!string.IsNullOrEmpty(op.DisasterType))
+                                {
+                                    <span class="badge bg-light text-muted border small">@op.DisasterType</span>
+                                }
+                            </div>
+
+                            <!-- Title -->
+                            <h5 class="fw-bold mb-0 lh-sm">@op.OperationName</h5>
+
+                            <!-- Lead org -->
+                            <div class="small">
+                                <i class="bi bi-building me-1 text-fl-green"></i>
+                                <strong>@op.LeadOrganization.OrganizationName</strong>
+                            </div>
+
+                            <!-- Location -->
+                            @if (!string.IsNullOrEmpty(op.Location))
+                            {
+                                <div class="small text-muted">
+                                    <i class="bi bi-geo-alt me-1"></i>@op.Location
+                                </div>
+                            }
+
+                            <!-- Description snippet -->
+                            @if (!string.IsNullOrEmpty(op.Description))
+                            {
+                                <p class="small text-muted mb-0"
+                                   style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+                                    @op.Description
+                                </p>
+                            }
+
+                            <!-- Partner organizations -->
+                            @if (partners.Any())
+                            {
+                                <div class="mt-1">
+                                    <div class="small text-muted mb-1">
+                                        <i class="bi bi-people me-1"></i>
+                                        <strong>@partners.Count</strong> Partner Organization@(partners.Count > 1 ? "s" : "")
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var partner in partners.Take(3))
+                                        {
+                                            <span class="badge bg-light text-dark border small">@partner.OrganizationName</span>
+                                        }
+                                        @if (partners.Count > 3)
+                                        {
+                                            <span class="badge bg-light text-muted border small">+@(partners.Count - 3) more</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Dates -->
+                            <div class="small text-muted mt-auto pt-2 border-top">
+                                <i class="bi bi-calendar me-1"></i>
+                                Started @op.StartDate.ToString("dd MMM yyyy")
+                                @if (op.EndDate.HasValue)
+                                {
+                                    <span class="ms-2"><i class="bi bi-calendar-check me-1"></i>Ended @op.EndDate.Value.ToString("dd MMM yyyy")</span>
+                                }
+                            </div>
+
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3">
+                            <a asp-action="OperationDetails" asp-route-id="@op.DisasterOperationId"
+                               class="btn btn-outline-secondary btn-sm w-100">
+                                <i class="bi bi-eye me-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>

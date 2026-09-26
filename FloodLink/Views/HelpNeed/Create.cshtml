@@ -1,0 +1,176 @@
+﻿@model FloodLink.Models.OrganizationHelpNeed
+
+@{
+    ViewData["Title"] = "Request External Help";
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="mb-4">
+        <h3 class="fw-bold">
+            Request External Help
+        </h3>
+
+        <p class="text-muted">
+            Submit a help need when your organization requires
+            support from the multi-organization coordination team.
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <form asp-action="Create" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"></div>
+
+                <div class="row g-3">
+
+                    <div class="col-md-8">
+                        <label class="form-label">
+                            What help do you need?
+                        </label>
+
+                        <input asp-for="Title"
+                               class="form-control"
+                               placeholder="Example: Need 2 rescue boats for emergency evacuation" />
+
+                        <span asp-validation-for="Title"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+                            Help Type
+                        </label>
+
+                        <select asp-for="HelpType"
+                                class="form-select">
+
+                            <option value="Volunteers">Volunteers</option>
+                            <option value="Medical">Medical</option>
+                            <option value="Rescue">Rescue</option>
+                            <option value="Boat">Boat</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Food">Food</option>
+                            <option value="Water">Water</option>
+                            <option value="Shelter">Shelter</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Other">Other</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Priority
+                        </label>
+
+                        <select asp-for="Priority"
+                                class="form-select">
+
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            People Affected
+                        </label>
+
+                        <input asp-for="PeopleAffected"
+                               type="number"
+                               min="1"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-12">
+
+                        <label class="form-label">
+                            Location
+                        </label>
+
+                        <input asp-for="Location"
+                               class="form-control"
+                               placeholder="Area / Upazila / District" />
+
+                    </div>
+
+                    <div class="col-12">
+
+                        <label class="form-label">
+                            Detailed Description
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="5"
+                                  placeholder="Explain what support is needed and why your organization cannot handle it alone."></textarea>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Contact Information
+                        </label>
+
+                        <input asp-for="ContactInformation"
+                               class="form-control"
+                               placeholder="Phone / email / field contact" />
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Help Needed By
+                        </label>
+
+                        <input asp-for="NeededBy"
+                               type="datetime-local"
+                               class="form-control" />
+
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+
+                    <button type="submit"
+                            class="btn btn-danger">
+                        <i class="bi bi-send me-1"></i>
+                        Submit Help Need
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

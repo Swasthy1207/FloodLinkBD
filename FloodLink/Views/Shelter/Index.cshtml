@@ -1,0 +1,153 @@
+@model IEnumerable<FloodLink.Models.Shelter>
+
+@{
+    ViewData["Title"] = "Shelters";
+    var validStatuses = ViewBag.ValidStatuses as string[] ?? Array.Empty<string>();
+    bool canManage = User.IsInRole("Super Admin") || User.IsInRole("Admin") || User.IsInRole("Coordinator") || User.IsInRole("Organization Admin");
+
+    string StatusBadge(string s) => s switch
+    {
+        "Open"             => "bg-success",
+        "Full"             => "bg-danger",
+        "Closed"           => "bg-secondary",
+        "Under Maintenance"=> "bg-warning text-dark",
+        _                  => "bg-secondary"
+    };
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Emergency Shelters</h3>
+            <p class="text-muted mb-0 small">View available shelters and their current occupancy.</p>
+        </div>
+        @if (canManage)
+        {
+            <a asp-action="Create" class="btn btn-primary">+ Add Shelter</a>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <!-- Filter -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <form asp-action="Index" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Search</label>
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm" placeholder="Name or location..." />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Status</label>
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="">All Statuses</option>
+                            @foreach (var s in validStatuses)
+                            {
+                                <option value="@s" selected="@(ViewBag.Status == s)">@s</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Sort By</label>
+                        <select name="sortOrder" class="form-select form-select-sm">
+                            <option value="">Newest First</option>
+                            <option value="capacity_desc" selected="@(ViewBag.SortOrder == "capacity_desc")">Capacity (High first)</option>
+                            <option value="capacity_asc"  selected="@(ViewBag.SortOrder == "capacity_asc")">Capacity (Low first)</option>
+                            <option value="occupancy"     selected="@(ViewBag.SortOrder == "occupancy")">Occupancy (High first)</option>
+                            <option value="name_asc"      selected="@(ViewBag.SortOrder == "name_asc")">Name A-Z</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-1">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Shelter Cards -->
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">No shelters found.</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var s in Model)
+            {
+                var pct = s.Capacity > 0 ? (int)((s.CurrentOccupancy / (double)s.Capacity) * 100) : 0;
+                var barColor = pct >= 90 ? "bg-danger" : pct >= 60 ? "bg-warning" : "bg-success";
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h6 class="card-title mb-0 fw-bold">@s.ShelterName</h6>
+                                <span class="badge @StatusBadge(s.Status)">@s.Status</span>
+                            </div>
+                            <p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> @s.Location</p>
+                            @if (s.Organization != null)
+                            {
+                                <p class="text-muted small mb-2"><i class="bi bi-building"></i> @s.Organization.OrganizationName</p>
+                            }
+                            <div class="mb-1 small d-flex justify-content-between">
+                                <span>Occupancy</span>
+                                <strong>@s.CurrentOccupancy / @s.Capacity</strong>
+                            </div>
+                            <div class="progress mb-3" style="height:8px;">
+                                <div class="progress-bar @barColor" style="width:@pct%"></div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(s.Facilities))
+                            {
+                                <p class="text-muted small mb-2"><i class="bi bi-check-circle"></i> @s.Facilities</p>
+                            }
+                            @if (!string.IsNullOrEmpty(s.ContactPerson))
+                            {
+                                <p class="text-muted small mb-0"><i class="bi bi-person"></i> @s.ContactPerson @(s.ContactPhone != null ? $"({s.ContactPhone})" : "")</p>
+                            }
+                        </div>
+                        <div class="card-footer bg-white border-top d-flex gap-2">
+                            <a asp-action="Details" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary w-100">View</a>
+                            @if (canManage)
+                            {
+                                <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if ((int)ViewBag.TotalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @((int)ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@((int)ViewBag.CurrentPage - 1)"
+                           asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-sortOrder="@ViewBag.SortOrder">
+                            &laquo; Prev
+                        </a>
+                    </li>
+                    @for (int p = 1; p <= (int)ViewBag.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == (int)ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-page="@p"
+                               asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-sortOrder="@ViewBag.SortOrder">@p</a>
+                        </li>
+                    }
+                    <li class="page-item @((int)ViewBag.CurrentPage == (int)ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@((int)ViewBag.CurrentPage + 1)"
+                           asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.Status" asp-route-sortOrder="@ViewBag.SortOrder">
+                            Next &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+</div>

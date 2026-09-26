@@ -1,0 +1,128 @@
+@model FloodLink.Models.PreparednessActivity
+
+@{
+    ViewData["Title"] = Model.Title;
+    bool canManage = User.IsInRole("Super Admin") || User.IsInRole("Admin") || User.IsInRole("Coordinator") || User.IsInRole("Organization Admin") || User.IsInRole("Organization");
+
+    string StatusBadge(string s) => s switch
+    {
+        "Completed" => "bg-success text-white",
+        "In Progress" => "bg-primary text-white",
+        "Planned" => "bg-info text-dark",
+        "Postponed" => "bg-warning text-dark",
+        "Cancelled" => "bg-danger text-white",
+        _ => "bg-secondary text-white"
+    };
+
+    string TypeIcon(string t) => t switch
+    {
+        "Volunteer Training" => "bi-person-badge text-primary",
+        "Emergency Drill" => "bi-alarm-fill text-danger",
+        "Awareness Campaign" => "bi-megaphone text-warning",
+        "Meeting Schedule" => "bi-calendar-event text-info",
+        "Resource Preparation" => "bi-box-seam text-success",
+        "Shelter Update" => "bi-building-gear text-secondary",
+        _ => "bi-shield-check text-primary"
+    };
+}
+
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Preparedness Activities</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-light text-dark border me-1"><i class="bi @TypeIcon(Model.ActivityType) me-1"></i> @Model.ActivityType</span>
+                        <span class="badge @StatusBadge(Model.Status)">@Model.Status</span>
+                    </div>
+                    @if (canManage)
+                    {
+                        <div class="btn-group btn-group-sm">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this activity?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-3">@Model.Title</h3>
+
+                    <div class="row g-3 mb-4 pb-3 border-bottom text-muted small">
+                        <div class="col-sm-6 col-md-3">
+                            <span class="text-uppercase fw-semibold d-block text-secondary">Scheduled Date</span>
+                            <span class="fw-bold text-dark fs-6"><i class="bi bi-calendar3 me-1 text-primary"></i> @Model.ScheduledDate.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="text-uppercase fw-semibold d-block text-secondary">Venue / Location</span>
+                            <span class="fw-bold text-dark"><i class="bi bi-geo-alt me-1 text-danger"></i> @(Model.Location ?? "Not specified")</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="text-uppercase fw-semibold d-block text-secondary">Participants</span>
+                            <span class="fw-bold text-dark"><i class="bi bi-people me-1 text-success"></i> @Model.ParticipantCount</span>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <span class="text-uppercase fw-semibold d-block text-secondary">Organizing Body</span>
+                            <span class="fw-bold text-dark"><i class="bi bi-building me-1 text-info"></i> @(Model.Organization?.OrganizationName ?? "Joint Coordination")</span>
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted text-uppercase small fw-semibold mb-2">Description & Objectives</h6>
+                    <p class="lead fs-6 text-dark mb-4" style="white-space: pre-line;">@Model.Description</p>
+
+                    @if (!string.IsNullOrEmpty(Model.OutcomeNotes))
+                    {
+                        <div class="alert alert-light border mb-4">
+                            <h6 class="fw-bold text-primary mb-1"><i class="bi bi-journal-check me-1"></i> Outcomes & Evaluation Notes</h6>
+                            <p class="mb-0 small" style="white-space: pre-line;">@Model.OutcomeNotes</p>
+                        </div>
+                    }
+
+                    @if (canManage)
+                    {
+                        <div class="p-3 bg-light rounded d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <span class="small fw-semibold text-muted">Quick Status Transition:</span>
+                            <div class="btn-group btn-group-sm">
+                                <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="status" value="Planned" />
+                                    <button type="submit" class="btn btn-outline-info @(Model.Status == "Planned" ? "active" : "")">Planned</button>
+                                </form>
+                                <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="status" value="In Progress" />
+                                    <button type="submit" class="btn btn-outline-primary @(Model.Status == "In Progress" ? "active" : "")">In Progress</button>
+                                </form>
+                                <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="status" value="Completed" />
+                                    <button type="submit" class="btn btn-outline-success @(Model.Status == "Completed" ? "active" : "")">Completed</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

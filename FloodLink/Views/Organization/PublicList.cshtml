@@ -1,0 +1,73 @@
+@model IEnumerable<FloodLink.Models.Organization>
+
+@{
+    ViewData["Title"] = "Organizations — FloodLinkBD";
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h1 class="h2 fw-bold mb-1">
+            <i class="bi bi-building me-2 text-fl-green"></i>Relief Organizations
+        </h1>
+        <p class="text-muted mb-0">
+            Organizations actively working across Bangladesh flood-affected communities.
+        </p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No approved organizations yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var org in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <!-- Header -->
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <div class="rounded-circle bg-fl-green text-white d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:44px;height:44px;font-size:1.1rem;font-weight:700">
+                                    @org.OrganizationName.First()
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-0 lh-sm">@org.OrganizationName</h5>
+                                    <span class="badge bg-light text-muted border small">@org.OrganizationType</span>
+                                </div>
+                            </div>
+
+                            <!-- Description snippet -->
+                            <p class="small text-muted mb-3"
+                               style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
+                                @org.Description
+                            </p>
+
+                            <!-- Meta -->
+                            <div class="small text-muted">
+                                <div class="mb-1">
+                                    <i class="bi bi-geo-alt me-1 text-fl-green"></i>@org.ServiceArea
+                                </div>
+                                <div>
+                                    <i class="bi bi-envelope me-1 text-fl-green"></i>@org.ContactEmail
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pb-3 px-3">
+                            <a asp-action="PublicActivities"
+                               asp-route-orgName="@org.OrganizationName"
+                               class="btn btn-outline-fl-green btn-sm w-100">
+                                <i class="bi bi-diagram-3 me-1"></i>View Activities
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>

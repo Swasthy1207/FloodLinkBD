@@ -1,0 +1,264 @@
+﻿@model FloodLink.Models.VolunteerActivityViewModel
+
+@{
+    ViewData["Title"] = "Volunteer Activity";
+
+    var volunteer = Model.Volunteer;
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="mb-1">
+                @volunteer.User?.FullName
+            </h3>
+
+            <p class="text-muted mb-0">
+                Volunteer Activity & Task History
+            </p>
+        </div>
+
+        <a asp-controller="Volunteer"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            ← Back to Volunteers
+        </a>
+
+    </div>
+
+
+    <!-- Volunteer Information -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <small class="text-muted">Status</small>
+
+                    <div class="mt-1">
+                        @if (volunteer.AvailabilityStatus == "Available")
+                        {
+                            <span class="badge bg-success">
+                                Available
+                            </span>
+                        }
+                        else if (volunteer.AvailabilityStatus == "Busy")
+                        {
+                            <span class="badge bg-warning text-dark">
+                                Busy
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                Inactive
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <small class="text-muted">Organization</small>
+
+                    <div class="fw-semibold mt-1">
+                        @volunteer.Organization?.OrganizationName
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <small class="text-muted">Skills</small>
+
+                    <div class="mt-1">
+                        @(volunteer.Skills ?? "Not specified")
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <small class="text-muted">Current Location</small>
+
+                    <div class="mt-1">
+                        @(volunteer.CurrentLocation ?? "Not specified")
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Assigned Tasks -->
+
+    <h5 class="fw-bold mb-3">
+        Assigned Tasks
+        <span class="badge bg-primary">
+            @Model.AssignedRequests.Count
+        </span>
+    </h5>
+
+
+    @if (!Model.AssignedRequests.Any())
+    {
+        <div class="alert alert-info">
+            This volunteer has no assigned tasks yet.
+        </div>
+    }
+    else
+    {
+        foreach (var request in Model.AssignedRequests)
+        {
+            <div class="card shadow-sm mb-4">
+
+                <div class="card-header bg-white">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+                            <strong>
+                                @request.Title
+                            </strong>
+
+                            <div class="small text-muted">
+                                Request #@request.Id
+                            </div>
+                        </div>
+
+                        <span class="badge
+                            @(request.Status == "In Progress"
+                                ? "bg-primary"
+                                : request.Status == "Completed"
+                                    ? "bg-success"
+                                    : "bg-secondary")">
+
+                            @request.Status
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-md-4">
+                            <small class="text-muted">
+                                Category
+                            </small>
+
+                            <div>
+                                @request.Category
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <small class="text-muted">
+                                Location
+                            </small>
+
+                            <div>
+                                @request.Location
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <small class="text-muted">
+                                Last Updated
+                            </small>
+
+                            <div>
+                                @request.UpdatedAt?.ToLocalTime()
+                                    .ToString("dd MMM yyyy, hh:mm tt")
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    @if (Model.StatusLogs.TryGetValue(
+                        request.Id,
+                        out var logs) && logs.Any())
+                    {
+                        <h6 class="fw-bold mb-2">
+                            Activity Timeline
+                        </h6>
+
+                        <div class="list-group">
+
+                            @foreach (var log in logs)
+                            {
+                                <div class="list-group-item">
+
+                                    <div class="d-flex justify-content-between">
+
+                                        <div>
+
+                                            <strong>
+                                                @log.ChangeType
+                                            </strong>
+
+                                            @if (!string.IsNullOrWhiteSpace(log.OldValue))
+                                            {
+                                                <span class="text-muted">
+                                                    @log.OldValue
+                                                    →
+                                                    @log.NewValue
+                                                </span>
+                                            }
+
+                                            @if (!string.IsNullOrWhiteSpace(log.Note))
+                                            {
+                                                <div class="small text-muted mt-1">
+                                                    @log.Note
+                                                </div>
+                                            }
+
+                                        </div>
+
+                                        <small class="text-muted">
+                                            @log.ChangedAt
+                                                .ToLocalTime()
+                                                .ToString("dd MMM yyyy, hh:mm tt")
+                                        </small>
+
+                                    </div>
+
+                                    @if (log.ChangedBy != null)
+                                    {
+                                        <small class="text-muted">
+                                            By:
+                                            @log.ChangedBy.FullName
+                                        </small>
+                                    }
+
+                                </div>
+                            }
+
+                        </div>
+                    }
+
+                    <div class="mt-3">
+
+                        <a asp-controller="HelpRequest"
+                           asp-action="Details"
+                           asp-route-id="@request.Id"
+                           class="btn btn-sm btn-outline-primary">
+                            View Request
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+    }
+
+</div>

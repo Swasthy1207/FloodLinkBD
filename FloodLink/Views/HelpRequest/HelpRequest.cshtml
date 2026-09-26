@@ -1,0 +1,179 @@
+﻿@model FloodLink.Models.HelpRequest
+
+@{
+    ViewData["Title"] = "Request Help";
+}
+
+<div class="container mt-5 mb-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-7">
+
+            <div class="card shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <h2 class="text-center mb-2">
+                        Request Help
+                    </h2>
+
+                    <p class="text-center text-muted mb-4">
+                        Submit a request for emergency assistance.
+                    </p>
+
+                    <form asp-controller="HelpRequest"
+                          asp-action="Create"
+                          method="post">
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3">
+                        </div>
+
+                        <!-- Title -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Title"
+                                   class="form-label">
+                            </label>
+
+                            <input asp-for="Title"
+                                   class="form-control"
+                                   placeholder="Example: Need emergency food" />
+
+                            <span asp-validation-for="Title"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- Description -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Description"
+                                   class="form-label">
+                            </label>
+
+                            <textarea asp-for="Description"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Describe the help you need">
+                            </textarea>
+
+                            <span asp-validation-for="Description"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- Category -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Category"
+                                   class="form-label">
+                                Help Category
+                            </label>
+
+                            <select asp-for="Category"
+                                    class="form-select">
+
+                                <option value="">
+                                    -- Select Category --
+                                </option>
+
+                                <option value="Food">
+                                    Food
+                                </option>
+
+                                <option value="Medicine">
+                                    Medicine
+                                </option>
+
+                                <option value="Water">
+                                    Water
+                                </option>
+
+                                <option value="Shelter">
+                                    Shelter
+                                </option>
+
+                                <option value="Rescue">
+                                    Rescue
+                                </option>
+
+                                <option value="Baby Supplies">
+                                    Baby Supplies
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="Category"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- Location -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="Location"
+                                   class="form-label">
+                            </label>
+
+                            <input asp-for="Location"
+                                   class="form-control"
+                                   placeholder="Enter your location" />
+
+                            <span asp-validation-for="Location"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- Submit -->
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+
+                            Submit Help Request
+
+                        </button>
+
+                    </form>
+
+
+                    <div class="text-center mt-3">
+
+                        <a asp-controller="Dashboard"
+                           asp-action="Index">
+                            Back to Dashboard
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial");
+    }
+
+}

@@ -1,0 +1,125 @@
+@model FloodLink.Models.Shelter
+
+@{
+    ViewData["Title"] = Model.ShelterName;
+    bool canManage = User.IsInRole("Super Admin") || User.IsInRole("Admin") || User.IsInRole("Coordinator") || User.IsInRole("Organization Admin");
+    var pct = Model.Capacity > 0 ? (int)((Model.CurrentOccupancy / (double)Model.Capacity) * 100) : 0;
+    var barColor = pct >= 90 ? "bg-danger" : pct >= 60 ? "bg-warning" : "bg-success";
+
+    string StatusBadge(string s) => s switch
+    {
+        "Open"             => "bg-success",
+        "Full"             => "bg-danger",
+        "Closed"           => "bg-secondary",
+        "Under Maintenance"=> "bg-warning text-dark",
+        _                  => "bg-secondary"
+    };
+}
+
+<div class="container mt-4 mb-5">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Shelter" asp-action="Index">Shelters</a></li>
+            <li class="breadcrumb-item active">@Model.ShelterName</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <div>
+                        <h4 class="mb-1">@Model.ShelterName</h4>
+                        <span class="badge @StatusBadge(Model.Status)">@Model.Status</span>
+                    </div>
+                    <span class="text-muted small">#@Model.Id</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Location</h6>
+                            <p class="mb-0">@Model.Location</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Total Capacity</h6>
+                            <p class="mb-0"><strong>@Model.Capacity</strong> people</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Current Occupancy</h6>
+                            <p class="mb-0"><strong>@Model.CurrentOccupancy</strong> people (@pct%)</p>
+                        </div>
+                        <div class="col-12">
+                            <div class="progress" style="height:12px;">
+                                <div class="progress-bar @barColor" style="width:@pct%"></div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Facilities))
+                        {
+                            <div class="col-12">
+                                <h6 class="text-muted text-uppercase small fw-semibold mb-1">Facilities</h6>
+                                <p class="mb-0">@Model.Facilities</p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.ContactPerson))
+                        {
+                            <div class="col-md-6">
+                                <h6 class="text-muted text-uppercase small fw-semibold mb-1">Contact Person</h6>
+                                <p class="mb-0">@Model.ContactPerson</p>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.ContactPhone))
+                        {
+                            <div class="col-md-6">
+                                <h6 class="text-muted text-uppercase small fw-semibold mb-1">Phone</h6>
+                                <p class="mb-0">@Model.ContactPhone</p>
+                            </div>
+                        }
+                        @if (Model.Organization != null)
+                        {
+                            <div class="col-md-6">
+                                <h6 class="text-muted text-uppercase small fw-semibold mb-1">Managing Organization</h6>
+                                <p class="mb-0">@Model.Organization.OrganizationName</p>
+                            </div>
+                        }
+                        <div class="col-md-6">
+                            <h6 class="text-muted text-uppercase small fw-semibold mb-1">Added On</h6>
+                            <p class="mb-0 text-muted small">@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        @if (canManage)
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+                        }
+                        <a asp-action="Index" class="btn btn-outline-secondary">← Back to Shelters</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (canManage)
+        {
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="mb-0 fw-semibold">Update Occupancy</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="UpdateOccupancy" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Current Occupancy (max: @Model.Capacity)</label>
+                                <input type="number" name="currentOccupancy" class="form-control"
+                                       value="@Model.CurrentOccupancy" min="0" max="@Model.Capacity" required />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Update Occupancy</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

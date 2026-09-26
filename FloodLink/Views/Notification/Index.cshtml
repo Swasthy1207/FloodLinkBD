@@ -1,0 +1,139 @@
+@model IEnumerable<FloodLink.Models.UserNotification>
+
+@{
+    ViewData["Title"] = "My Notifications";
+    string filter = ViewBag.Filter as string ?? "";
+    int unreadCount = (int)(ViewBag.UnreadCount ?? 0);
+    int currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    int totalPages = (int)(ViewBag.TotalPages ?? 1);
+    int totalCount = (int)(ViewBag.TotalCount ?? 0);
+
+    string TypeIcon(string t) => t switch
+    {
+        "RequestAccepted" => "bi-check2-circle text-success",
+        "VolunteerAssigned" => "bi-person-check-fill text-primary",
+        "StatusUpdated" => "bi-arrow-repeat text-info",
+        "EmergencyAnnouncement" => "bi-broadcast text-danger",
+        "TaskAssigned" => "bi-list-task text-warning",
+        _ => "bi-bell-fill text-secondary"
+    };
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="fw-bold mb-1">🔔 Notifications</h2>
+            <p class="text-muted mb-0"> Real-time alerts for request status changes, volunteer assignments, and emergency warnings</p>
+        </div>
+        @if (unreadCount > 0)
+        {
+            <form asp-action="MarkAllAsRead" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-check2-all me-1"></i> Mark All as Read
+                </button>
+            </form>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Filter Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link @(string.IsNullOrEmpty(filter) ? "active fw-bold" : "")" asp-action="Index" asp-route-filter="">
+                All Notifications
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(filter == "unread" ? "active fw-bold" : "")" asp-action="Index" asp-route-filter="unread">
+                Unread
+                @if (unreadCount > 0)
+                {
+                    <span class="badge bg-danger ms-1">@unreadCount</span>
+                }
+            </a>
+        </li>
+    </ul>
+
+    <!-- Notifications List -->
+    <div class="card shadow-sm border-0">
+        @if (!Model.Any())
+        {
+            <div class="p-5 text-center text-muted">
+                <i class="bi bi-bell-slash fs-1 d-block mb-3"></i>
+                <h5>No notifications yet</h5>
+                <p class="small">You're all caught up! You'll receive alerts here when requests are updated or announcements are made.</p>
+            </div>
+        }
+        else
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var n in Model)
+                {
+                    <div class="list-group-item p-3 @(n.IsRead ? "bg-white" : "bg-light border-start border-4 border-primary")">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <i class="bi @TypeIcon(n.NotificationType) fs-3 mt-1"></i>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <h6 class="fw-bold mb-0 @(n.IsRead ? "text-dark" : "text-primary")">@n.Title</h6>
+                                        @if (!n.IsRead)
+                                        {
+                                            <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">New</span>
+                                        }
+                                    </div>
+                                    <p class="mb-1 text-secondary small">@n.Message</p>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i> @n.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</small>
+                                </div>
+                            </div>
+                            <div class="text-end flex-shrink-0">
+                                @if (!string.IsNullOrEmpty(n.TargetUrl))
+                                {
+                                    <form asp-action="MarkAsRead" asp-route-id="@n.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            View Details &rarr;
+                                        </button>
+                                    </form>
+                                }
+                                else if (!n.IsRead)
+                                {
+                                    <form asp-action="MarkAsRead" asp-route-id="@n.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-link text-muted text-decoration-none">
+                                            Mark as read
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (totalPages > 1)
+        {
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                <small class="text-muted">Showing page @currentPage of @totalPages</small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        @for (int p = 1; p <= totalPages; p++)
+                        {
+                            <li class="page-item @(p == currentPage ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@p" asp-route-filter="@filter">@p</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>

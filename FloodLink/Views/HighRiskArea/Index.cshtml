@@ -1,0 +1,221 @@
+@model IEnumerable<FloodLink.Models.HighRiskArea>
+
+@{
+    ViewData["Title"] = "High-Risk Flood Areas";
+    string search = ViewBag.Search as string ?? "";
+    string riskLevel = ViewBag.RiskLevel as string ?? "";
+    string accessibility = ViewBag.Accessibility as string ?? "";
+    string sortBy = ViewBag.SortBy as string ?? "";
+    int currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    int totalPages = (int)(ViewBag.TotalPages ?? 1);
+    int totalCount = (int)(ViewBag.TotalCount ?? 0);
+    var riskLevels = ViewBag.RiskLevels as string[] ?? Array.Empty<string>();
+    var accessibilities = ViewBag.Accessibilities as string[] ?? Array.Empty<string>();
+    bool canManage = User.IsInRole("Super Admin") || User.IsInRole("Admin") || User.IsInRole("Coordinator") || User.IsInRole("Organization Admin") || User.IsInRole("Organization");
+
+    string RiskBadge(string r) => r switch
+    {
+        "High" => "bg-danger text-white",
+        "Medium" => "bg-warning text-dark",
+        "Low" => "bg-info text-dark",
+        _ => "bg-secondary text-white"
+    };
+
+    string AccessBadge(string a) => a switch
+    {
+        "Boat Required" => "bg-primary text-white",
+        "Road Inaccessible" => "bg-danger text-white",
+        "Very Difficult" => "bg-warning text-dark",
+        "Difficult" => "bg-secondary text-white",
+        "Easily Accessible" => "bg-success text-white",
+        _ => "bg-light text-dark border"
+    };
+
+    string AccessIcon(string a) => a switch
+    {
+        "Boat Required" => "bi-water",
+        "Road Inaccessible" => "bi-slash-circle-fill",
+        "Very Difficult" => "bi-exclamation-triangle-fill",
+        "Difficult" => "bi-signpost-split",
+        "Easily Accessible" => "bi-check-circle-fill",
+        _ => "bi-geo-alt"
+    };
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="fw-bold mb-1">📍 High-Risk Flood Areas</h2>
+            <p class="text-muted mb-0">Identification of remote or isolated villages, risk levels, and flood accessibility conditions</p>
+        </div>
+        @if (canManage)
+        {
+            <a asp-action="Create" class="btn btn-danger shadow-sm">
+                <i class="bi bi-geo-alt-fill me-1"></i> Add High-Risk Area
+            </a>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Search & Filter Card -->
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body p-3">
+            <form method="get" asp-action="Index" class="row g-2 align-items-center">
+                <div class="col-md-3">
+                    <input type="text" name="search" value="@search" class="form-control" placeholder="Search area name, union, hazard..." />
+                </div>
+                <div class="col-md-2">
+                    <select name="riskLevel" class="form-select">
+                        <option value="">All Risk Levels</option>
+                        @foreach (var r in riskLevels)
+                        {
+                            <option value="@r" selected="@(riskLevel == r)">@r Risk</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="accessibility" class="form-select">
+                        <option value="">All Access Conditions</option>
+                        @foreach (var a in accessibilities)
+                        {
+                            <option value="@a" selected="@(accessibility == a)">@a</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sortBy" class="form-select">
+                        <option value="">Sort by Risk & Pop</option>
+                        <option value="pop_desc" selected="@(sortBy == "pop_desc")">Population (High to Low)</option>
+                        <option value="pop_asc" selected="@(sortBy == "pop_asc")">Population (Low to High)</option>
+                        <option value="name_asc" selected="@(sortBy == "name_asc")">Name (A-Z)</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-filter"></i> Filter</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Areas Table -->
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Area / Village Name</th>
+                        <th>District / Upazila</th>
+                        <th>Risk Level</th>
+                        <th>Accessibility</th>
+                        <th>Population Est.</th>
+                        <th>Status</th>
+                        <th>Reporting Organization</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-map fs-1 d-block mb-2"></i>
+                                No high-risk areas found matching criteria.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var area in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-bold">
+                                        <a asp-action="Details" asp-route-id="@area.Id" class="text-dark text-decoration-none">
+                                            @area.AreaName
+                                        </a>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(area.TerrainAndHazardNotes))
+                                    {
+                                        <small class="text-muted text-truncate d-inline-block" style="max-width: 220px;">@area.TerrainAndHazardNotes</small>
+                                    }
+                                </td>
+                                <td>
+                                    <span>@(area.DistrictOrUpazila ?? "General")</span>
+                                    @if (!string.IsNullOrEmpty(area.UnionOrWard))
+                                    {
+                                        <small class="text-muted d-block">Union: @area.UnionOrWard</small>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @RiskBadge(area.RiskLevel)">@area.RiskLevel Risk</span>
+                                </td>
+                                <td>
+                                    <span class="badge @AccessBadge(area.Accessibility)">
+                                        <i class="bi @AccessIcon(area.Accessibility) me-1"></i> @area.Accessibility
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">@area.PopulationEstimate.ToString("N0")</span> <small class="text-muted">people</small>
+                                </td>
+                                <td>
+                                    @if (area.IsActive)
+                                    {
+                                        <span class="badge bg-danger">Active Danger</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Safe / Cleared</span>
+                                    }
+                                </td>
+                                <td>
+                                    <small class="fw-semibold">@(area.Organization?.OrganizationName ?? "Central Coordination")</small>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@area.Id" class="btn btn-outline-secondary">Details</a>
+                                        @if (canManage)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@area.Id" class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form asp-action="ToggleActive" asp-route-id="@area.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-secondary" title="@(area.IsActive ? "Mark Safe" : "Mark Active Danger")">
+                                                    <i class="bi @(area.IsActive ? "bi-check2-circle" : "bi-exclamation-circle")"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (totalPages > 1)
+        {
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+                <small class="text-muted">Showing page @currentPage of @totalPages (@totalCount high-risk areas)</small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        @for (int p = 1; p <= totalPages; p++)
+                        {
+                            <li class="page-item @(p == currentPage ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@p" asp-route-riskLevel="@riskLevel" asp-route-accessibility="@accessibility" asp-route-sortBy="@sortBy" asp-route-search="@search">@p</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>

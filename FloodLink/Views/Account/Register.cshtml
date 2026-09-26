@@ -1,0 +1,219 @@
+@model FloodLink.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <h2 class="text-center mb-1">Create Account</h2>
+                    <p class="text-center text-muted small mb-4">
+                        Join FloodLink to assist or receive emergency disaster support
+                    </p>
+
+                    <form asp-controller="Account"
+                          asp-action="Register"
+                          method="post"
+                          id="registerForm">
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3 small">
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label"></label>
+                            <input asp-for="FullName"
+                                   class="form-control"
+                                   placeholder="e.g. Tanvir Ahmed" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <div class="position-relative">
+                                <input asp-for="Email"
+                                       id="emailInput"
+                                       class="form-control"
+                                       placeholder="e.g. tanvir@example.com"
+                                       autocomplete="email" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                            <div id="emailAvailabilityFeedback" class="small mt-1" style="min-height: 18px;"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label"></label>
+                            <input asp-for="Phone"
+                                   class="form-control"
+                                   placeholder="e.g. 01712345678" />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                            <div class="form-text text-muted small">
+                                11-digit Bangladeshi mobile number.
+                            </div>
+                        </div>
+                        <!--password indicator-->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password"
+                                   id="passwordInput"
+                                   class="form-control"
+                                   placeholder="Enter a secure password"
+                                   autocomplete="new-password" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+
+                           
+                            <div class="mt-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-muted">Password Strength:</span>
+                                    <span id="strengthBadge" class="badge bg-secondary">None</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div id="strengthBar"
+                                         class="progress-bar"
+                                         role="progressbar"
+                                         style="width: 0%;"
+                                         aria-valuenow="0"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <div id="strengthRules" class="form-text text-muted small mt-1">
+                                    Requires at least 8 characters, with uppercase, lowercase, and digit.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ConfirmPassword" class="form-label"></label>
+                            <input asp-for="ConfirmPassword"
+                                   class="form-control"
+                                   placeholder="Re-enter password"
+                                   autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Role" class="form-label"></label>
+                            <select asp-for="Role" class="form-select">
+                                <option value="Citizen">Citizen (Request help, track status)</option>
+                                <option value="Volunteer">Volunteer (Accept & assist requests)</option>
+                                <option value="Community Reporter">Community Reporter (Report flood conditions)</option>
+                                <option value="Coordinator">Coordinator (Coordinate response teams)</option>
+                                <option value="Organization Admin">Organization Admin (Manage relief organization)</option>
+                            </select>
+                            <span asp-validation-for="Role" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary w-100 py-2 fw-semibold">
+                            Create Account
+                        </button>
+
+                    </form>
+
+                    <div class="text-center mt-3 small">
+                        Already have an account?
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="text-decoration-none fw-semibold">
+                            Login
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+           
+            const emailInput = document.getElementById("emailInput");
+            const feedbackEl = document.getElementById("emailAvailabilityFeedback");
+            let emailDebounceTimer;
+
+            if (emailInput && feedbackEl) {
+                emailInput.addEventListener("input", function () {
+                    clearTimeout(emailDebounceTimer);
+                    const email = emailInput.value.trim();
+
+                    if (!email || email.length < 5 || !email.includes("@@")) {
+                        feedbackEl.innerHTML = "";
+                        return;
+                    }
+
+                    feedbackEl.innerHTML = '<span class="text-muted">Checking availability...</span>';
+
+                    emailDebounceTimer = setTimeout(async function () {
+                        try {
+                            const response = await fetch(`/Account/CheckEmailAvailability?email=${encodeURIComponent(email)}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.available) {
+                                    feedbackEl.innerHTML = `<span class="text-success fw-semibold">&#10003; ${data.message}</span>`;
+                                } else {
+                                    feedbackEl.innerHTML = `<span class="text-danger fw-semibold">&#10007; ${data.message}</span>`;
+                                }
+                            }
+                        } catch (err) {
+                            feedbackEl.innerHTML = "";
+                        }
+                    }, 400);
+                });
+            }
+
+           
+// password indicator
+            const passwordInput = document.getElementById("passwordInput");
+            const strengthBar = document.getElementById("strengthBar");
+            const strengthBadge = document.getElementById("strengthBadge");
+
+            if (passwordInput && strengthBar && strengthBadge) {
+                passwordInput.addEventListener("input", function () {
+                    const val = passwordInput.value;
+                    let score = 0;
+
+                    if (val.length >= 8) score++;
+                    if (/[a-z]/.test(val)) score++;
+                    if (/[A-Z]/.test(val)) score++;
+                    if (/\d/.test(val)) score++;
+                    if (/[^a-zA-Z0-9]/.test(val)) score++;
+
+                    if (val.length === 0) {
+                        strengthBar.style.width = "0%";
+                        strengthBar.className = "progress-bar";
+                        strengthBadge.className = "badge bg-secondary";
+                        strengthBadge.textContent = "None";
+                    } else if (score <= 2) {
+                        strengthBar.style.width = "33%";
+                        strengthBar.className = "progress-bar bg-danger";
+                        strengthBadge.className = "badge bg-danger";
+                        strengthBadge.textContent = "Weak";
+                    } else if (score <= 4) {
+                        strengthBar.style.width = "66%";
+                        strengthBar.className = "progress-bar bg-warning text-dark";
+                        strengthBadge.className = "badge bg-warning text-dark";
+                        strengthBadge.textContent = "Medium";
+                    } else {
+                        strengthBar.style.width = "100%";
+                        strengthBar.className = "progress-bar bg-success";
+                        strengthBadge.className = "badge bg-success";
+                        strengthBadge.textContent = "Strong";
+                    }
+                });
+            }
+        });
+    </script>
+}

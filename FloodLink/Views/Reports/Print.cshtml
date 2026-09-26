@@ -1,0 +1,170 @@
+@{
+    Layout = null;
+    int totalReq = ViewBag.TotalRequests ?? 0;
+    int resolvedReq = ViewBag.ResolvedRequests ?? 0;
+    int inProgressReq = ViewBag.InProgressRequests ?? 0;
+    int highPriReq = ViewBag.HighPriorityRequests ?? 0;
+    var reqByCategory = ViewBag.RequestsByCategory as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var distributions = ViewBag.Distributions as List<FloodLink.Models.ResourceDistribution> ?? new List<FloodLink.Models.ResourceDistribution>();
+    var highRiskAreas = ViewBag.HighRiskAreas as List<FloodLink.Models.HighRiskArea> ?? new List<FloodLink.Models.HighRiskArea>();
+    int totalShelters = ViewBag.TotalShelters ?? 0;
+    int totalCap = ViewBag.TotalCapacity ?? 0;
+    int totalOcc = ViewBag.TotalOccupancy ?? 0;
+    string fromDate = ViewBag.FromDate as string ?? "";
+    string toDate = ViewBag.ToDate as string ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>FloodLink — Relief Operations Summary Report</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { font-size: 13px; color: #222; }
+        @@media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body class="p-4 bg-white">
+    <div class="no-print mb-4 d-flex justify-content-between align-items-center pb-3 border-bottom">
+        <div>
+            <button onclick="window.print()" class="btn btn-primary btn-sm"><i class="bi bi-printer"></i> Print / Save as PDF</button>
+            <button onclick="window.close()" class="btn btn-outline-secondary btn-sm ms-2">Close</button>
+        </div>
+        <span class="text-muted small">Use Print dialog to save as official PDF report</span>
+    </div>
+
+    <!-- Official Report Header -->
+    <div class="text-center mb-4 pb-3 border-bottom">
+        <h2 class="fw-bold mb-0">FloodLink Bangladesh</h2>
+        <h5 class="text-uppercase text-secondary tracking-wide">Multi-Organization Disaster Relief Operations Summary</h5>
+        <div class="small text-muted mt-2">
+            Generated on: <strong>@DateTime.UtcNow.ToString("dd MMMM yyyy HH:mm") UTC</strong> | 
+            Period: <strong>@(string.IsNullOrEmpty(fromDate) ? "All recorded history" : $"{fromDate} to {toDate}")</strong>
+        </div>
+    </div>
+
+    <!-- Executive Metrics Grid -->
+    <div class="row g-2 mb-4 text-center">
+        <div class="col-3">
+            <div class="p-2 border rounded">
+                <small class="text-muted text-uppercase fw-bold d-block">Total Help Requests</small>
+                <h3 class="fw-bold mb-0">@totalReq</h3>
+                <small class="text-muted">@highPriReq High Priority</small>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="p-2 border rounded">
+                <small class="text-muted text-uppercase fw-bold d-block">Resolved Requests</small>
+                <h3 class="fw-bold mb-0 text-success">@resolvedReq</h3>
+                <small class="text-muted">@inProgressReq In Progress</small>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="p-2 border rounded">
+                <small class="text-muted text-uppercase fw-bold d-block">Supplies Distributed</small>
+                <h3 class="fw-bold mb-0 text-primary">@ViewBag.TotalUnitsDistributed</h3>
+                <small class="text-muted">@ViewBag.TotalDistributions events</small>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="p-2 border rounded">
+                <small class="text-muted text-uppercase fw-bold d-block">Shelter Occupancy</small>
+                <h3 class="fw-bold mb-0">@totalOcc / @totalCap</h3>
+                <small class="text-muted">Across @totalShelters Shelters</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests Category Breakdown -->
+    <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2">1. Help Request Demand by Category</h6>
+    <table class="table table-sm table-bordered mb-4">
+        <thead class="table-light">
+            <tr>
+                <th>Category</th>
+                <th class="text-center">Count</th>
+                <th class="text-end">Percentage of Total Demand</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var kvp in reqByCategory.OrderByDescending(x => x.Value))
+            {
+                double pct = totalReq > 0 ? (double)kvp.Value / totalReq * 100 : 0;
+                <tr>
+                    <td>@kvp.Key</td>
+                    <td class="text-center">@kvp.Value</td>
+                    <td class="text-end">@Math.Round(pct, 1)%</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- High-Risk Areas -->
+    <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2">2. High-Risk Flood Areas & Access Conditions</h6>
+    <table class="table table-sm table-bordered mb-4">
+        <thead class="table-light">
+            <tr>
+                <th>Area Name</th>
+                <th>District / Upazila</th>
+                <th>Risk Level</th>
+                <th>Accessibility</th>
+                <th class="text-end">Population Est.</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in highRiskAreas)
+            {
+                <tr>
+                    <td>@a.AreaName</td>
+                    <td>@(a.DistrictOrUpazila ?? "General")</td>
+                    <td>@a.RiskLevel</td>
+                    <td>@a.Accessibility</td>
+                    <td class="text-end">@a.PopulationEstimate.ToString("N0")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Recent Distribution Log -->
+    <h6 class="fw-bold text-uppercase border-bottom pb-1 mb-2">3. Relief Supply Distributions</h6>
+    <table class="table table-sm table-bordered mb-4">
+        <thead class="table-light">
+            <tr>
+                <th>Date</th>
+                <th>Item Distributed</th>
+                <th>Quantity</th>
+                <th>Destination</th>
+                <th>Operation</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in distributions.Take(25))
+            {
+                <tr>
+                    <td>@d.DistributionDate.ToString("yyyy-MM-dd")</td>
+                    <td>@(d.Resource?.ResourceName ?? "Supplies")</td>
+                    <td>@d.Quantity @(d.Resource?.Unit ?? "units")</td>
+                    <td>@d.DistributedTo</td>
+                    <td>@(d.DisasterOperation?.OperationName ?? "Standalone")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Sign-off footer -->
+    <div class="row mt-5 pt-4 text-center">
+        <div class="col-4">
+            <div class="border-top pt-2">Relief Coordinator</div>
+        </div>
+        <div class="col-4">
+            <div class="border-top pt-2">Organization Representative</div>
+        </div>
+        <div class="col-4">
+            <div class="border-top pt-2">Central Disaster Authority</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,265 @@
+﻿@model FloodLink.Models.OrganizationHelpNeed
+
+@{
+    ViewData["Title"] = "Help Need Details";
+
+    var offers =
+        ViewBag.Offers as IEnumerable<FloodLink.Models.OrganizationHelpOffer>
+        ?? Enumerable.Empty<FloodLink.Models.OrganizationHelpOffer>();
+
+    int? myOrganizationId = ViewBag.MyOrganizationId;
+}
+
+<div class="container py-4">
+
+    <a asp-action="Index"
+       class="btn btn-outline-secondary mb-3">
+        ← Back to Help Needs
+    </a>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between">
+
+                <h2>@Model.Title</h2>
+
+                <span class="badge bg-info align-self-start">
+                    @Model.Status
+                </span>
+
+            </div>
+
+            <hr />
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Requesting Organization:</strong><br />
+                        @Model.Organization?.OrganizationName
+                    </p>
+
+                    <p>
+                        <strong>Help Type:</strong><br />
+                        @Model.HelpType
+                    </p>
+
+                    <p>
+                        <strong>Priority:</strong><br />
+                        @Model.Priority
+                    </p>
+
+                    <p>
+                        <strong>Location:</strong><br />
+                        @Model.Location
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>People Affected:</strong><br />
+                        @Model.PeopleAffected
+                    </p>
+
+                    <p>
+                        <strong>Needed By:</strong><br />
+
+                        @if (Model.NeededBy.HasValue)
+                        {
+                            @Model.NeededBy.Value.ToLocalTime()
+                        }
+                        else
+                        {
+                            <span>Not specified</span>
+                        }
+                    </p>
+
+                    <p>
+                        <strong>Contact:</strong><br />
+                        @Model.ContactInformation
+                    </p>
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <h5>Description</h5>
+
+            <p>
+                @Model.Description
+            </p>
+
+        </div>
+
+        <div class="card-footer">
+
+            @if (myOrganizationId.HasValue &&
+                 myOrganizationId.Value != Model.OrganizationId &&
+                 Model.Status != "Resolved" &&
+                 Model.Status != "Rejected")
+            {
+                <a asp-action="OfferHelp"
+                   asp-route-id="@Model.Id"
+                   class="btn btn-success">
+                    🤝 Offer Help
+                </a>
+            }
+
+        </div>
+
+    </div>
+
+
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+            <h4 class="mb-0">
+                Help Offers (@offers.Count())
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            @if (!offers.Any())
+            {
+                <div class="alert alert-light">
+                    No organization has offered help yet.
+                </div>
+            }
+            else
+            {
+                @foreach (var offer in offers)
+                {
+                    <div class="border rounded p-3 mb-3">
+
+                        <div class="d-flex justify-content-between">
+
+                            <h5>
+                                @offer.OfferingOrganization?.OrganizationName
+                            </h5>
+
+                            @if (offer.Status == "Pending")
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    Pending
+                                </span>
+                            }
+                            else if (offer.Status == "Accepted")
+                            {
+                                <span class="badge bg-success">
+                                    Accepted
+                                </span>
+                            }
+                            else if (offer.Status == "Rejected")
+                            {
+                                <span class="badge bg-danger">
+                                    Rejected
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    @offer.Status
+                                </span>
+                            }
+
+                        </div>
+
+                        <p>
+                            <strong>Help:</strong>
+                            @offer.OfferedHelpType
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(offer.OfferedQuantity))
+                        {
+                            <p>
+                                <strong>Quantity:</strong>
+                                @offer.OfferedQuantity
+                            </p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(offer.Message))
+                        {
+                            <p>
+                                <strong>Message:</strong>
+                                @offer.Message
+                            </p>
+                        }
+
+                        <small class="text-muted">
+                            Offered @offer.CreatedAt.ToLocalTime()
+                        </small>
+
+
+                        @* Only requesting organization can accept/reject *@
+                        @if (myOrganizationId == Model.OrganizationId &&
+                             offer.Status == "Pending")
+                        {
+                            <div class="mt-3 d-flex gap-2">
+
+                                <form asp-action="AcceptOffer"
+                                      method="post">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@offer.HelpOfferId" />
+
+                                    <button type="submit"
+                                            class="btn btn-success">
+                                        Accept
+                                    </button>
+
+                                </form>
+
+
+                                <form asp-action="RejectOffer"
+                                      method="post">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@offer.HelpOfferId" />
+
+                                    <button type="submit"
+                                            class="btn btn-danger">
+                                        Reject
+                                    </button>
+
+                                </form>
+
+                            </div>
+                        }
+
+                    </div>
+                }
+            }
+
+        </div>
+
+    </div>
+
+</div>

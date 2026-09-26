@@ -1,0 +1,210 @@
+@model IEnumerable<FloodLink.Models.HelpRequest>
+
+@{
+    ViewData["Title"] = "All Help Requests";
+    var categories = (string[])(ViewBag.Categories ?? Array.Empty<string>());
+
+    string StatusBadge(string s) => s switch
+    {
+        "Submitted"   => "bg-warning text-dark",
+        "In Progress" => "bg-primary",
+        "Resolved"    => "bg-success",
+        "Closed"      => "bg-secondary",
+        _             => "bg-secondary"
+    };
+    string PriorityBadge(string p) => p switch
+    {
+        "High"   => "bg-danger",
+        "Medium" => "bg-warning text-dark",
+        "Low"    => "bg-info text-dark",
+        _        => "bg-secondary"
+    };
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">All Help Requests</h3>
+            <p class="text-muted mb-0 small">
+                Coordinator/Admin view — @ViewBag.TotalCount total requests
+            </p>
+        </div>
+    </div>
+
+    <!-- Search / Filter / Sort -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <form asp-controller="HelpRequest" asp-action="AllRequests" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Search</label>
+                        <input type="text" name="search" value="@ViewBag.Search"
+                               class="form-control form-control-sm"
+                               placeholder="Title, location, description…" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Category</label>
+                        <select name="category" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat" selected="@(ViewBag.Category == cat)">@cat</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Status</label>
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <option value="Submitted"   selected="@(ViewBag.Status == "Submitted")">Submitted</option>
+                            <option value="In Progress" selected="@(ViewBag.Status == "In Progress")">In Progress</option>
+                            <option value="Resolved"    selected="@(ViewBag.Status == "Resolved")">Resolved</option>
+                            <option value="Closed"      selected="@(ViewBag.Status == "Closed")">Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Priority</label>
+                        <select name="priority" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <option value="High"   selected="@(ViewBag.Priority == "High")">High</option>
+                            <option value="Medium" selected="@(ViewBag.Priority == "Medium")">Medium</option>
+                            <option value="Low"    selected="@(ViewBag.Priority == "Low")">Low</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Sort By</label>
+                        <select name="sortOrder" class="form-select form-select-sm">
+                            <option value="">Newest First</option>
+                            <option value="oldest"     selected="@(ViewBag.SortOrder == "oldest")">Oldest First</option>
+                            <option value="title_asc"  selected="@(ViewBag.SortOrder == "title_asc")">Title A–Z</option>
+                            <option value="title_desc" selected="@(ViewBag.SortOrder == "title_desc")">Title Z–A</option>
+                            <option value="priority"   selected="@(ViewBag.SortOrder == "priority")">Priority (High first)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Go</button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(ViewBag.Search as string) ||
+                     !string.IsNullOrEmpty(ViewBag.Category as string) ||
+                     !string.IsNullOrEmpty(ViewBag.Status as string) ||
+                     !string.IsNullOrEmpty(ViewBag.Priority as string))
+                {
+                    <a asp-controller="HelpRequest" asp-action="AllRequests"
+                       class="btn btn-sm btn-outline-secondary mt-2">
+                        Clear Filters
+                    </a>
+                }
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No help requests found matching your filters.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Location</th>
+                        <th>People</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Submitted</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td class="text-muted small">@r.Id</td>
+                            <td>
+                                <a asp-controller="HelpRequest"
+                                   asp-action="Details"
+                                   asp-route-id="@r.Id"
+                                   class="text-decoration-none fw-semibold">
+                                    @r.Title
+                                </a>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">@r.Category</span></td>
+                            <td class="small">@r.Location</td>
+                            <td class="small text-center">@r.NumberOfPeople</td>
+                            <td><span class="badge @StatusBadge(r.Status)">@r.Status</span></td>
+                            <td><span class="badge @PriorityBadge(r.Priority)">@r.Priority</span></td>
+                            <td class="small text-muted">@r.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>
+                                <a asp-controller="HelpRequest"
+                                   asp-action="Details"
+                                   asp-route-id="@r.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if ((int)ViewBag.TotalPages > 1)
+        {
+            <nav aria-label="Pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @((int)ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-controller="HelpRequest" asp-action="AllRequests"
+                           asp-route-page="@((int)ViewBag.CurrentPage - 1)"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-category="@ViewBag.Category"
+                           asp-route-status="@ViewBag.Status"
+                           asp-route-priority="@ViewBag.Priority"
+                           asp-route-sortOrder="@ViewBag.SortOrder">
+                            &laquo;
+                        </a>
+                    </li>
+                    @for (int p = 1; p <= (int)ViewBag.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == (int)ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-controller="HelpRequest" asp-action="AllRequests"
+                               asp-route-page="@p"
+                               asp-route-search="@ViewBag.Search"
+                               asp-route-category="@ViewBag.Category"
+                               asp-route-status="@ViewBag.Status"
+                               asp-route-priority="@ViewBag.Priority"
+                               asp-route-sortOrder="@ViewBag.SortOrder">
+                                @p
+                            </a>
+                        </li>
+                    }
+                    <li class="page-item @((int)ViewBag.CurrentPage == (int)ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-controller="HelpRequest" asp-action="AllRequests"
+                           asp-route-page="@((int)ViewBag.CurrentPage + 1)"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-category="@ViewBag.Category"
+                           asp-route-status="@ViewBag.Status"
+                           asp-route-priority="@ViewBag.Priority"
+                           asp-route-sortOrder="@ViewBag.SortOrder">
+                            &raquo;
+                        </a>
+                    </li>
+                </ul>
+                <p class="text-center text-muted small">
+                    Page @ViewBag.CurrentPage of @ViewBag.TotalPages
+                    (@ViewBag.TotalCount total)
+                </p>
+            </nav>
+        }
+    }
+</div>

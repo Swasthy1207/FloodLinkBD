@@ -1,0 +1,233 @@
+@{
+    ViewData["Title"] = "Relief Operations Reports";
+    int totalReq = ViewBag.TotalRequests ?? 0;
+    int resolvedReq = ViewBag.ResolvedRequests ?? 0;
+    int inProgressReq = ViewBag.InProgressRequests ?? 0;
+    int highPriReq = ViewBag.HighPriorityRequests ?? 0;
+    var reqByCategory = ViewBag.RequestsByCategory as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var distributions = ViewBag.Distributions as List<FloodLink.Models.ResourceDistribution> ?? new List<FloodLink.Models.ResourceDistribution>();
+    var highRiskAreas = ViewBag.HighRiskAreas as List<FloodLink.Models.HighRiskArea> ?? new List<FloodLink.Models.HighRiskArea>();
+    var orgs = ViewBag.Organizations as List<FloodLink.Models.Organization> ?? new List<FloodLink.Models.Organization>();
+    var ops = ViewBag.Operations as List<FloodLink.Models.DisasterOperation> ?? new List<FloodLink.Models.DisasterOperation>();
+    int? selectedOrg = ViewBag.SelectedOrgId as int?;
+    int? selectedOp = ViewBag.SelectedOpId as int?;
+    string fromDate = ViewBag.FromDate as string ?? "";
+    string toDate = ViewBag.ToDate as string ?? "";
+    int totalShelters = ViewBag.TotalShelters ?? 0;
+    int totalCap = ViewBag.TotalCapacity ?? 0;
+    int totalOcc = ViewBag.TotalOccupancy ?? 0;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="fw-bold mb-1">📊 Disaster Relief Operations Report</h2>
+            <p class="text-muted mb-0">Comprehensive auditing & monitoring of overall relief activities</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Print" asp-route-organizationId="@selectedOrg" asp-route-operationId="@selectedOp" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate" target="_blank" class="btn btn-outline-dark">
+                <i class="bi bi-printer me-1"></i> Print / Export Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body p-3">
+            <form method="get" asp-action="Index" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Organization</label>
+                    <select name="organizationId" class="form-select form-select-sm">
+                        <option value="">All Organizations</option>
+                        @foreach (var o in orgs)
+                        {
+                            <option value="@o.Id" selected="@(selectedOrg == o.Id)">@o.OrganizationName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">Disaster Operation</label>
+                    <select name="operationId" class="form-select form-select-sm">
+                        <option value="">All Operations</option>
+                        @foreach (var op in ops)
+                        {
+                            <option value="@op.DisasterOperationId" selected="@(selectedOp == op.DisasterOperationId)">@op.OperationName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">From Date</label>
+                    <input type="date" name="fromDate" value="@fromDate" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">To Date</label>
+                    <input type="date" name="toDate" value="@toDate" class="form-control form-control-sm" />
+                </div>
+                <div class="col-md-2 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-funnel"></i> Apply Filter</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Executive Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 bg-white border-top border-4 border-primary">
+                <small class="text-muted text-uppercase fw-semibold">Total Requests Logged</small>
+                <h2 class="fw-bold mb-0 text-primary">@totalReq</h2>
+                <small class="text-danger fw-semibold">@highPriReq High Urgency</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 bg-white border-top border-4 border-success">
+                <small class="text-muted text-uppercase fw-semibold">Resolution Rate</small>
+                @{
+                    int resRate = totalReq > 0 ? (int)Math.Round((double)resolvedReq / totalReq * 100) : 0;
+                }
+                <h2 class="fw-bold mb-0 text-success">@resRate%</h2>
+                <small class="text-muted">@resolvedReq Resolved / Closed</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 bg-white border-top border-4 border-info">
+                <small class="text-muted text-uppercase fw-semibold">Supplies Distributed</small>
+                <h2 class="fw-bold mb-0 text-info">@ViewBag.TotalUnitsDistributed</h2>
+                <small class="text-muted">@ViewBag.TotalDistributions deployment events</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 bg-white border-top border-4 border-warning">
+                <small class="text-muted text-uppercase fw-semibold">Shelter Utilization</small>
+                @{
+                    int shelterUtil = totalCap > 0 ? (int)Math.Round((double)totalOcc / totalCap * 100) : 0;
+                }
+                <h2 class="fw-bold mb-0 text-warning">@shelterUtil%</h2>
+                <small class="text-muted">@totalOcc accommodated in @totalShelters shelters</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two-column: Category Breakdown & Shelter Status -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-pie-chart-fill text-primary me-2"></i> Requests by Help Category</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Category</th>
+                                <th class="text-center">Count</th>
+                                <th class="text-end">Share</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!reqByCategory.Any())
+                            {
+                                <tr><td colspan="3" class="text-center text-muted py-3">No category data.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var kvp in reqByCategory.OrderByDescending(x => x.Value))
+                                {
+                                    double share = totalReq > 0 ? (double)kvp.Value / totalReq * 100 : 0;
+                                    <tr>
+                                        <td><strong>@kvp.Key</strong></td>
+                                        <td class="text-center"><span class="badge bg-light text-dark border">@kvp.Value</span></td>
+                                        <td class="text-end">
+                                            <span class="small fw-semibold">@Math.Round(share, 1)%</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-geo-alt-fill text-danger me-2"></i> High-Risk Area Status</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Area</th>
+                                <th>Risk</th>
+                                <th>Accessibility</th>
+                                <th class="text-end">Pop. Est.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!highRiskAreas.Any())
+                            {
+                                <tr><td colspan="4" class="text-center text-muted py-3">No high-risk areas identified.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var a in highRiskAreas.Take(6))
+                                {
+                                    <tr>
+                                        <td><strong>@a.AreaName</strong></td>
+                                        <td><span class="badge @(a.RiskLevel == "High" ? "bg-danger" : "bg-warning text-dark")">@a.RiskLevel</span></td>
+                                        <td><small class="badge bg-light text-dark border">@a.Accessibility</small></td>
+                                        <td class="text-end fw-semibold">@a.PopulationEstimate.ToString("N0")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Distribution Audit Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-box-arrow-right text-success me-2"></i> Recorded Relief Resource Distributions</h5>
+            <span class="badge bg-secondary">@distributions.Count entries</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Quantity Distributed</th>
+                        <th>Destination</th>
+                        <th>Operation</th>
+                        <th>Distributing Organization</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!distributions.Any())
+                    {
+                        <tr><td colspan="6" class="text-center py-4 text-muted">No distributions recorded in this period.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var d in distributions.Take(15))
+                        {
+                            <tr>
+                                <td><small>@d.DistributionDate.ToLocalTime().ToString("MMM dd, yyyy")</small></td>
+                                <td><strong>@(d.Resource?.ResourceName ?? "Supplies")</strong></td>
+                                <td><span class="badge bg-success">@d.Quantity @(d.Resource?.Unit ?? "units")</span></td>
+                                <td>@d.DistributedTo</td>
+                                <td><small class="text-muted">@(d.DisasterOperation?.OperationName ?? "Standalone")</small></td>
+                                <td><small class="fw-semibold">@(d.Organization?.OrganizationName ?? "General Pool")</small></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

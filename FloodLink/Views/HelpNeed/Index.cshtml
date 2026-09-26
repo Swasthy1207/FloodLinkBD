@@ -1,0 +1,224 @@
+﻿@model IEnumerable<FloodLink.Models.OrganizationHelpNeed>
+
+@{
+    ViewData["Title"] = "Organization Help Needs";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">
+                <i class="bi bi-life-preserver me-2"></i>
+                Organization Help Needs
+            </h2>
+            <p class="text-muted mb-0">
+                View and manage submitted help requests.
+            </p>
+        </div>
+
+        @if (User.IsInRole("Organization Admin") ||
+             User.IsInRole("Organization"))
+        {
+            <a asp-action="Create"
+               class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>
+                Submit Help Need
+            </a>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+
+                <i class="bi bi-inbox display-4 text-muted"></i>
+
+                <h5 class="mt-3">
+                    No help needs found
+                </h5>
+
+                <p class="text-muted">
+                    No organization help requests have been submitted yet.
+                </p>
+
+                @if (User.IsInRole("Organization Admin") ||
+                     User.IsInRole("Organization"))
+                {
+                    <a asp-action="Create"
+                       class="btn btn-primary">
+                        Submit Your First Help Need
+                    </a>
+                }
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>Title</th>
+                                <th>Organization</th>
+                                <th>Help Type</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Needed By</th>
+                                <th>Submitted</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td>
+                                        <strong>
+                                            @item.Title
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        @item.Organization?.OrganizationName
+                                    </td>
+
+                                    <td>
+                                        @item.HelpType
+                                    </td>
+
+                                    <td>
+                                        @if (item.Priority == "High")
+                                        {
+                                            <span class="badge bg-danger">
+                                                High
+                                            </span>
+                                        }
+                                        else if (item.Priority == "Medium")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Medium
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Low
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (item.Status == "Resolved")
+                                        {
+                                            <span class="badge bg-success">
+                                                Resolved
+                                            </span>
+                                        }
+                                        else if (item.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">
+                                                Rejected
+                                            </span>
+                                        }
+                                        else if (item.Status == "In Progress")
+                                        {
+                                            <span class="badge bg-primary">
+                                                In Progress
+                                            </span>
+                                        }
+                                        else if (item.Status == "Accepted")
+                                        {
+                                            <span class="badge bg-success">
+                                                Accepted
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                @item.Status
+                                            </span>
+                                        }
+                                    </td>
+
+                                   <td>
+    @if (item.NeededBy.HasValue)
+    {
+        @(
+            item.NeededBy.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy, hh:mm tt")
+        )
+    }
+    else
+    {
+        <span class="text-muted">
+            Not specified
+        </span>
+    }
+</td>
+
+                                    <td>
+                                        @item.CreatedAt.ToLocalTime()
+                                            .ToString("dd MMM yyyy")
+                                    </td>
+
+                                    <td class="text-end">
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>
+                                            Details
+                                        </a>
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+    }
+
+</div>

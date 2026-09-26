@@ -1,0 +1,123 @@
+@model IEnumerable<FloodLink.Models.VolunteerProfile>
+
+@{
+    ViewData["Title"] = "Volunteer Directory";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0">Volunteer Directory</h3>
+            <p class="text-muted mb-0 small">Browse and filter available volunteers for assignment.</p>
+        </div>
+    </div>
+
+    <!-- Filter form -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <form asp-controller="Volunteer" asp-action="Index" method="get">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Search Name/Location</label>
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm" placeholder="Search..." />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Skills</label>
+                        <input type="text" name="skills" value="@ViewBag.Skills" class="form-control form-control-sm" placeholder="e.g. Medical" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Status</label>
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="">All Statuses</option>
+                            <option value="Available" selected="@(ViewBag.Status == "Available")">Available</option>
+                            <option value="Busy" selected="@(ViewBag.Status == "Busy")">Busy</option>
+                            <option value="Inactive" selected="@(ViewBag.Status == "Inactive")">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-1">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Directory list -->
+    <div class="row g-3">
+        @foreach (var volunteer in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h5 class="card-title mb-0">@volunteer.User?.FullName</h5>
+                            @if (volunteer.AvailabilityStatus == "Available")
+                            {
+                                <span class="badge bg-success">Available</span>
+                            }
+                            else if (volunteer.AvailabilityStatus == "Busy")
+                            {
+                                <span class="badge bg-warning text-dark">Busy</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </div>
+                        <p class="text-muted small mb-2"><i class="bi bi-envelope"></i> @volunteer.User?.Email</p>
+                        
+                        <div class="mb-2 small">
+                            <strong><i class="bi bi-geo-alt"></i> Location:</strong> @(volunteer.CurrentLocation ?? "Not specified")
+                        </div>
+                        <div class="mb-2 small">
+                            <strong><i class="bi bi-tools"></i> Skills:</strong> @(volunteer.Skills ?? "None specified")
+                        </div>
+                        <div class="mb-2 small">
+                            <strong><i class="bi bi-building"></i> Affiliation:</strong> 
+                            @if (volunteer.Organization != null && volunteer.IsApprovedByOrg)
+                            {
+                                <span>@volunteer.Organization.OrganizationName</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Independent</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-top">
+
+    <div class="d-flex gap-2">
+
+        @if (!string.IsNullOrWhiteSpace(volunteer.User?.Email))
+        {
+            <a href="mailto:@volunteer.User.Email"
+               class="btn btn-sm btn-outline-primary flex-fill">
+                <i class="bi bi-envelope me-1"></i>
+                Contact
+            </a>
+        }
+
+        <a asp-controller="Volunteer"
+           asp-action="Activity"
+           asp-route-id="@volunteer.Id"
+           class="btn btn-sm btn-outline-secondary flex-fill">
+            <i class="bi bi-clock-history me-1"></i>
+            Activity
+        </a>
+
+    </div>
+
+</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <p class="text-muted">No volunteers found matching your criteria.</p>
+        </div>
+    }
+</div>
